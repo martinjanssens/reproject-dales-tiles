@@ -35,6 +35,7 @@ program reproject
   character(8) :: cmyid
   character(8) :: ceid
   character(8) :: cwid
+  character(8) :: cnid
 
   !! CENTRAL PROCESSOR
   real, allocatable :: u0(:,:,:)        !<   x-component of velocity at time step t
@@ -193,6 +194,52 @@ program reproject
   real, allocatable :: sv0w(:,:,:,:)     !<  scalar sv(n) at time step t
   real, allocatable :: svfluxw  (:,:,:)  !<  Kinematic scalar flux [- m/s]
 
+  !! NORTH PROCESSOR
+  real, allocatable :: u0n(:,:,:)        !<   x-component of velocity at time step t
+  real, allocatable :: v0n(:,:,:)        !<   y-component of velocity at time step t
+  real, allocatable :: w0n(:,:,:)        !<   z-component of velocity at time step t
+  real, allocatable :: thl0n(:,:,:)      !<   liq. water pot. temperature at time step t
+  real, allocatable :: qt0n(:,:,:)       !<   total specific humidity at time step t
+  real, allocatable :: ql0n(:,:,:)  		!<   liquid water content
+  real, allocatable :: ql0hn(:,:,:)
+  real, allocatable :: e120n(:,:,:)      !<   square root of turb. kin. energy at time step t
+  real, allocatable :: dthvdzn(:,:,:)	!<   theta_v at half level
+  real, allocatable :: ekmn(:,:,:)   	!< k-coefficient for momentum
+  real, allocatable :: ekhn(:,:,:)  		!< k-coefficient for heat and q_tot
+  real, allocatable :: tmp0n(:,:,:) 		!<   temperature at full level
+  real, allocatable :: esln(:,:,:)
+  real, allocatable :: qvsln(:,:,:)
+  real, allocatable :: qvsin(:,:,:)
+  real, allocatable :: ustarn (:,:)      !<  Friction velocity [m/s]
+  real, allocatable :: thlfluxn (:,:)    !<  Kinematic temperature flux [K m/s]
+  real, allocatable :: qtfluxn  (:,:)    !<  Kinematic specific humidity flux [kg/kg m/s]
+  real, allocatable :: dthldzn(:,:)      !<  Liquid water potential temperature gradient in surface layer [K/m]
+  real, allocatable :: dqtdzn (:,:)      !<  Specific humidity gradient in surface layer [kg/kg/m]
+  real, allocatable :: obln(:,:)         !<  Obukhov length [m]
+  real, allocatable :: tskinn(:,:)       !<  Skin temperature [K]
+  real, allocatable :: qskinn(:,:)       !<  Skin specific humidity [kg/kg]
+
+  ! Radiation
+  real, allocatable :: thlpradn(:,:,:)!<   the radiative tendencies
+  real, allocatable :: swdn(:,:,:)    !<   shortwave downward radiative flux
+  real, allocatable :: swdirn(:,:,:)  !<   Direct shortwave downward radiative flux
+  real, allocatable :: swdifn(:,:,:)  !<   Difuse shortwave downward radiative flux
+  real, allocatable :: lwcn(:,:,:)    !<   Liquid water content calculated in rrtmg
+  real, allocatable :: swun(:,:,:)    !<   shortwave upward radiative flux
+  real, allocatable :: lwdn(:,:,:)    !<   longwave downward radiative flux
+  real, allocatable :: lwun(:,:,:)    !<   longwave upward radiative flux
+!
+  real, allocatable :: swdcan(:,:,:)  !<  clear air shortwave downward radiative flux
+  real, allocatable :: swucan(:,:,:)  !<  clear air shortwave upward radiative flux
+  real, allocatable :: lwdcan(:,:,:)  !<  clear air longwave downward radiative flux
+  real, allocatable :: lwucan(:,:,:)  !<  clear air longwave upward radiative flux
+
+  real, allocatable :: SW_up_TOAn(:,:), SW_dn_TOAn(:,:), LW_up_TOAn(:,:), LW_dn_TOAn(:,:) !< Top of the atmosphere radiative fluxes
+  real, allocatable :: SW_up_ca_TOAn(:,:), SW_dn_ca_TOAn(:,:), LW_up_ca_TOAn(:,:), LW_dn_ca_TOAn(:,:)
+
+  ! Scalars
+  real, allocatable :: sv0n(:,:,:,:)     !<  scalar sv(n) at time step t
+  real, allocatable :: svfluxn  (:,:,:)  !<  Kinematic scalar flux [- m/s]
 
   ! Get ghost cells for input simulation
   imax = itot/nprocx
@@ -386,6 +433,53 @@ program reproject
   allocate(sv0w  (2-ih:i1+ih,2-jh:j1+jh,k1,nsv))
   allocate(svfluxw  (i2,j2,nsv))
 
+  !! NORTH PROCESSOR
+  allocate(u0n   (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(v0n   (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(w0n   (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(thl0n (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(qt0n  (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(ql0n   (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(ql0hn  (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(e120n (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(dthvdzn(2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(ekmn(2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(ekhn(2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(tmp0n  (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(esln (2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(qvsln(2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(qvsin(2-ih:i1+ih,2-jh:j1+jh,k1))
+  allocate(ustarn   (i2,j2))
+  allocate(thlfluxn (i2,j2))
+  allocate(qtfluxn  (i2,j2))
+  allocate(dqtdzn   (i2,j2))
+  allocate(dthldzn  (i2,j2))
+  allocate(obln(i2,j2))
+  allocate(tskinn(i2,j2))
+  allocate(qskinn(i2,j2))
+  allocate(thlpradn   (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(swdn       (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(swun       (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(lwdn       (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(lwun       (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(swdcan     (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(swucan     (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(lwdcan     (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(lwucan     (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(swdirn     (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(swdifn     (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(lwcn       (2-ih:i1+ih,2-jh:j1+jh,k1) )
+  allocate(SW_up_TOAn (2-ih:i1+ih,2-jh:j1+jh)    )
+  allocate(SW_dn_TOAn (2-ih:i1+ih,2-jh:j1+jh)    )
+  allocate(LW_up_TOAn (2-ih:i1+ih,2-jh:j1+jh)    )
+  allocate(LW_dn_TOAn (2-ih:i1+ih,2-jh:j1+jh)    )
+  allocate(SW_up_ca_TOAn(2-ih:i1+ih,2-jh:j1+jh)  )
+  allocate(SW_dn_ca_TOAn(2-ih:i1+ih,2-jh:j1+jh)  )
+  allocate(LW_up_ca_TOAn(2-ih:i1+ih,2-jh:j1+jh)  )
+  allocate(LW_dn_ca_TOAn(2-ih:i1+ih,2-jh:j1+jh)  )
+  allocate(sv0n  (2-ih:i1+ih,2-jh:j1+jh,k1,nsv))
+  allocate(svfluxn  (i2,j2,nsv))
+
   ! Loop over processors
   do procx = 0, nprocx-1
   	do procy = 0, nprocy-1
@@ -407,12 +501,19 @@ program reproject
       	write(cwid,'(a,i3.3,a,i3.3)') 'x', nprocx-1, 'y', procy
       end if
 
+      ! North
+      if (procy > 0) then
+        write(cnid,'(a,i3.3,a,i3.3)') 'x', procx, 'y', procy-1
+      else
+      	write(cnid,'(a,i3.3,a,i3.3)') 'x', procx, 'y', nprocy-1
+      end if
+
 	  ! Read restartfiles
 
 	  !! CURRENT PROCESSOR
 	  name(5:5) = 'd'
 	  name(13:20) = cmyid
-	  write(6,*) 'loading ',name
+	  print *, 'Reading restartfiles for ', name
 	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
 
 	  read(ifinput)  (((u0    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
@@ -485,7 +586,7 @@ program reproject
 	  !! EAST PROCESSOR
 	  name(5:5) = 'd'
 	  name(13:20) = ceid
-	  write(6,*) 'loading ',name
+	  write(6,*) 'East processor: ',name
 	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
 
 	  read(ifinput)  (((u0e    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
@@ -546,7 +647,7 @@ program reproject
 
 	  if (nsv>0) then
 	    name(5:5) = 's'
-	    write(6,*) 'loading ',name
+	    write(6,*) 'East processor s: ',name
 	    open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
 	    read(ifinput) ((((sv0e(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
 	    read(ifinput) (((svfluxe(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
@@ -558,7 +659,7 @@ program reproject
 	  !! WEST PROCESSOR
 	  name(5:5) = 'd'
 	  name(13:20) = cwid
-	  write(6,*) 'loading ',name
+	  write(6,*) 'West processor: ',name
 	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
 
 	  read(ifinput)  (((u0w    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
@@ -619,10 +720,83 @@ program reproject
 
 	  if (nsv>0) then
 	    name(5:5) = 's'
-	    write(6,*) 'loading ',name
+	    write(6,*) 'West processor s: ',name
 	    open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
 	    read(ifinput) ((((sv0w(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
 	    read(ifinput) (((svfluxw(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
+	    read(ifinput) (dsv(n),n=1,nsv)
+	    read(ifinput)  timee
+	    close(ifinput)
+	  end if
+
+	  !! NORTH PROCESSOR
+	  name(5:5) = 'd'
+	  name(13:20) = cnid
+	  write(6,*) 'North processor: ',name
+	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
+
+	  read(ifinput)  (((u0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((v0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((w0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((thl0n  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((qt0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((ql0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((ql0hn  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((e120n  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((dthvdzn(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((ekmn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((ekhn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((tmp0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((esln   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((qvsln   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((qvsin   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)   ((ustarn (i,j  ),i=1,i2      ),j=1,j2      )
+	  read(ifinput)   ((thlfluxn (i,j  ),i=1,i2      ),j=1,j2      )
+	  read(ifinput)   ((qtfluxn  (i,j  ),i=1,i2      ),j=1,j2      )
+	  read(ifinput)   ((dthldzn(i,j  ),i=1,i2      ),j=1,j2      )
+	  read(ifinput)   ((dqtdzn (i,j  ),i=1,i2      ),j=1,j2      )
+	  read(ifinput)  (  presf (    k)                            ,k=1,k1)
+	  read(ifinput)  (  presh (    k)                            ,k=1,k1)
+	  read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
+	  read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
+	  read(ifinput)  ps,thls,qts,thvs,oblav
+	  read(ifinput)  dtheta,dqt,timee,dt,tres
+	  read(ifinput)   ((obln (i,j  ),i=1,i2      ),j=1,j2      )
+	  read(ifinput)   ((tskinn(i,j ),i=1,i2      ),j=1,j2      )
+	  read(ifinput)   ((qskinn(i,j ),i=1,i2      ),j=1,j2      )
+
+	!!!!! radiation quantities
+	  read(ifinput)  tnext_radiation
+	  read(ifinput)  (((thlpradn (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((swdn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((swun     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((lwdn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((lwun     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((swdcan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((swucan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((lwdcan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((lwucan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((swdirn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((swdifn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  read(ifinput)  (((lwcn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+
+	  read(ifinput)  ((SW_up_TOAn    (i,j ),i=1,i2),j=1,j2)
+	  read(ifinput)  ((SW_dn_TOAn    (i,j ),i=1,i2),j=1,j2)
+	  read(ifinput)  ((LW_up_TOAn    (i,j ),i=1,i2),j=1,j2)
+	  read(ifinput)  ((LW_dn_TOAn    (i,j ),i=1,i2),j=1,j2)
+	  read(ifinput)  ((SW_up_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+	  read(ifinput)  ((SW_dn_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+	  read(ifinput)  ((LW_up_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+	  read(ifinput)  ((LW_dn_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+
+	  close(ifinput)
+
+	  if (nsv>0) then
+	    name(5:5) = 's'
+	    write(6,*) 'North processor n: ',name
+	    open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
+	    read(ifinput) ((((sv0n(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
+	    read(ifinput) (((svfluxn(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
 	    read(ifinput) (dsv(n),n=1,nsv)
 	    read(ifinput)  timee
 	    close(ifinput)
@@ -722,5 +896,12 @@ program reproject
   deallocate(lwdcaw, lwucaw, swdirw, swdifw, lwcw, SW_up_TOAw, SW_dn_TOAw, LW_up_TOAw, LW_dn_TOAw)
   deallocate(SW_up_ca_TOAw, SW_dn_ca_TOAw, LW_up_ca_TOAw, LW_dn_ca_TOAw)
   deallocate(sv0w, svfluxw)
+
+  deallocate(u0n, v0n, w0n, thl0n, qt0n, ql0n, ql0hn, e120n, dthvdzn, ekmn, ekhn, tmp0n, esln, qvsln, qvsin)
+  deallocate(ustarn, thlfluxn, qtfluxn, dthldzn, dqtdzn)
+  deallocate(obln, tskinn, qskinn, thlpradn, swdn, swun, lwdn, lwun, swdcan, swucan)
+  deallocate(lwdcan, lwucan, swdirn, swdifn, lwcn, SW_up_TOAn, SW_dn_TOAn, LW_up_TOAn, LW_dn_TOAn)
+  deallocate(SW_up_ca_TOAn, SW_dn_ca_TOAn, LW_up_ca_TOAn, LW_dn_ca_TOAn)
+  deallocate(sv0n, svfluxn)
 
 end program reproject
