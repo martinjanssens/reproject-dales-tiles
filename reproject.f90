@@ -811,304 +811,390 @@ program reproject
 	    close(ifinput)
 	  end if
 
-	  !! EAST PROCESSOR
-	  name(5:5) = 'd'
-	  name(13:20) = ceid
-	  write(6,*) 'East processor: ',name
-	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
+      ! If the input fields are bigger than the output fields, you don't need the adjacent procs
+      ! Assumes ih and jh behave consistently
+      if (iho > ih) then
 
-	  read(ifinput)  (((u0e    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((v0e    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((w0e    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((thl0e  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qt0e   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0e   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0he  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((e120e  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((dthvdze(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekme   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekhe   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((tmp0e   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((esle   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvsle   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvsie   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)   ((ustare (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((thlfluxe (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qtfluxe  (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dthldze(i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dqtdze (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)  (  presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  presh (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
-	  read(ifinput)  ps,thls,qts,thvs,oblav
-	  read(ifinput)  dtheta,dqt,timee,dt,tres
-	  read(ifinput)   ((oble (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((tskine(i,j ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qskine(i,j ),i=1,i2      ),j=1,j2      )
+		!! EAST PROCESSOR
+		name(5:5) = 'd'
+		name(13:20) = ceid
+		write(6,*) 'East processor: ',name
+		open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
 
-	!!!!! radiation quantities
-	  read(ifinput)  tnext_radiation
-	  read(ifinput)  (((thlprade (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swde     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swue     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwde     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwue     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdcae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swucae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwdcae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwucae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdire   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdife   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwce     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((u0e    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((v0e    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((w0e    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((thl0e  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qt0e   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0e   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0he  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((e120e  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((dthvdze(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekme   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekhe   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((tmp0e   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((esle   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvsle   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvsie   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)   ((ustare (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((thlfluxe (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qtfluxe  (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dthldze(i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dqtdze (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)  (  presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  presh (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
+		read(ifinput)  ps,thls,qts,thvs,oblav
+		read(ifinput)  dtheta,dqt,timee,dt,tres
+		read(ifinput)   ((oble (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((tskine(i,j ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qskine(i,j ),i=1,i2      ),j=1,j2      )
 
-	  read(ifinput)  ((SW_up_TOAe    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_TOAe    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_TOAe    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_TOAe    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_up_ca_TOAe (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_ca_TOAe (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_ca_TOAe (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_ca_TOAe (i,j ),i=1,i2),j=1,j2)
+		!!!!! radiation quantities
+		read(ifinput)  tnext_radiation
+		read(ifinput)  (((thlprade (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	    read(ifinput)  (((swde     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swue     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwde     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwue     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdcae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swucae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwdcae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwucae   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdire   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdife   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwce     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
 
-	  close(ifinput)
+		read(ifinput)  ((SW_up_TOAe    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_TOAe    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_TOAe    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_dn_TOAe    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_up_ca_TOAe (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_ca_TOAe (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_ca_TOAe (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_dn_ca_TOAe (i,j ),i=1,i2),j=1,j2)
 
-	  if (nsv>0) then
-	    name(5:5) = 's'
-	    write(6,*) 'East processor s: ',name
-	    open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
-	    read(ifinput) ((((sv0e(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
-	    read(ifinput) (((svfluxe(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
-	    read(ifinput) (dsv(n),n=1,nsv)
-	    read(ifinput)  timee
-	    close(ifinput)
-	  end if
+		close(ifinput)
 
-	  !! WEST PROCESSOR
-	  name(5:5) = 'd'
-	  name(13:20) = cwid
-	  write(6,*) 'West processor: ',name
-	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
+		if (nsv>0) then
+		  name(5:5) = 's'
+		  write(6,*) 'East processor s: ',name
+		  open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
+		  read(ifinput) ((((sv0e(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
+		  read(ifinput) (((svfluxe(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
+		  read(ifinput) (dsv(n),n=1,nsv)
+		  read(ifinput)  timee
+		  close(ifinput)
+		end if
 
-	  read(ifinput)  (((u0w    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((v0w    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((w0w    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((thl0w  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qt0w   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0w   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0hw  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((e120w  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((dthvdzw(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekmw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekhw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((tmp0w   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((eslw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvslw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvsiw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)   ((ustarw (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((thlfluxw (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qtfluxw  (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dthldzw(i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dqtdzw (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)  (  presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  presh (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
-	  read(ifinput)  ps,thls,qts,thvs,oblav
-	  read(ifinput)  dtheta,dqt,timee,dt,tres
-	  read(ifinput)   ((oblw (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((tskinw(i,j ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qskinw(i,j ),i=1,i2      ),j=1,j2      )
+		!! WEST PROCESSOR
+		name(5:5) = 'd'
+		name(13:20) = cwid
+		write(6,*) 'West processor: ',name
+		open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
 
-	!!!!! radiation quantities
-	  read(ifinput)  tnext_radiation
-	  read(ifinput)  (((thlpradw (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swuw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwdw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwuw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdcaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swucaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwdcaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwucaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdirw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdifw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwcw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((u0w    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((v0w    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((w0w    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((thl0w  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qt0w   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0w   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0hw  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((e120w  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((dthvdzw(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekmw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekhw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((tmp0w   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((eslw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvslw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvsiw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)   ((ustarw (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((thlfluxw (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qtfluxw  (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dthldzw(i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dqtdzw (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)  (  presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  presh (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
+		read(ifinput)  ps,thls,qts,thvs,oblav
+		read(ifinput)  dtheta,dqt,timee,dt,tres
+		read(ifinput)   ((oblw (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((tskinw(i,j ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qskinw(i,j ),i=1,i2      ),j=1,j2      )
 
-	  read(ifinput)  ((SW_up_TOAw    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_TOAw    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_TOAw    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_TOAw    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_up_ca_TOAw (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_ca_TOAw (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_ca_TOAw (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_ca_TOAw (i,j ),i=1,i2),j=1,j2)
+		!!!!! radiation quantities
+		read(ifinput)  tnext_radiation
+		read(ifinput)  (((thlpradw (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swuw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwdw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwuw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdcaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swucaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwdcaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwucaw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdirw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdifw   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwcw     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
 
-	  close(ifinput)
+		read(ifinput)  ((SW_up_TOAw    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_TOAw    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_TOAw    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_dn_TOAw    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_up_ca_TOAw (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_ca_TOAw (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_ca_TOAw (i,j ),i=1,i2),j=1,j2)
+	    read(ifinput)  ((LW_dn_ca_TOAw (i,j ),i=1,i2),j=1,j2)
 
-	  if (nsv>0) then
-	    name(5:5) = 's'
-	    write(6,*) 'West processor s: ',name
-	    open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
-	    read(ifinput) ((((sv0w(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
-	    read(ifinput) (((svfluxw(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
-	    read(ifinput) (dsv(n),n=1,nsv)
-	    read(ifinput)  timee
-	    close(ifinput)
-	  end if
+		close(ifinput)
 
-	  !! NORTH PROCESSOR
-	  name(5:5) = 'd'
-	  name(13:20) = cnid
-	  write(6,*) 'North processor: ',name
-	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
+		if (nsv>0) then
+		  name(5:5) = 's'
+		  write(6,*) 'West processor s: ',name
+		  open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
+		  read(ifinput) ((((sv0w(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
+		  read(ifinput) (((svfluxw(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
+		  read(ifinput) (dsv(n),n=1,nsv)
+		  read(ifinput)  timee
+		  close(ifinput)
+		end if
 
-	  read(ifinput)  (((u0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((v0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((w0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((thl0n  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qt0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0hn  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((e120n  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((dthvdzn(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekmn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekhn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((tmp0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((esln   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvsln   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvsin   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)   ((ustarn (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((thlfluxn (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qtfluxn  (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dthldzn(i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dqtdzn (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)  (  presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  presh (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
-	  read(ifinput)  ps,thls,qts,thvs,oblav
-	  read(ifinput)  dtheta,dqt,timee,dt,tres
-	  read(ifinput)   ((obln (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((tskinn(i,j ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qskinn(i,j ),i=1,i2      ),j=1,j2      )
+		!! NORTH PROCESSOR
+		name(5:5) = 'd'
+		name(13:20) = cnid
+		write(6,*) 'North processor: ',name
+		open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
 
-	!!!!! radiation quantities
-	  read(ifinput)  tnext_radiation
-	  read(ifinput)  (((thlpradn (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swun     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwdn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwun     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdcan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swucan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwdcan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwucan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdirn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdifn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwcn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((u0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((v0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((w0n    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((thl0n  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qt0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0hn  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((e120n  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((dthvdzn(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekmn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekhn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((tmp0n   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((esln   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvsln   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvsin   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)   ((ustarn (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((thlfluxn (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qtfluxn  (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dthldzn(i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dqtdzn (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)  (  presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  presh (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
+		read(ifinput)  ps,thls,qts,thvs,oblav
+		read(ifinput)  dtheta,dqt,timee,dt,tres
+		read(ifinput)   ((obln (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((tskinn(i,j ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qskinn(i,j ),i=1,i2      ),j=1,j2      )
 
-	  read(ifinput)  ((SW_up_TOAn    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_TOAn    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_TOAn    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_TOAn    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_up_ca_TOAn (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_ca_TOAn (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_ca_TOAn (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+		!!!!! radiation quantities
+		read(ifinput)  tnext_radiation
+		read(ifinput)  (((thlpradn (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swun     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwdn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwun     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdcan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swucan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwdcan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwucan   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdirn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdifn   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwcn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
 
-	  close(ifinput)
+		read(ifinput)  ((SW_up_TOAn    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_TOAn    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_TOAn    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_dn_TOAn    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_up_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_ca_TOAn (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_dn_ca_TOAn (i,j ),i=1,i2),j=1,j2)
 
-	  if (nsv>0) then
-	    name(5:5) = 's'
-	    write(6,*) 'North processor n: ',name
-	    open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
-	    read(ifinput) ((((sv0n(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
-	    read(ifinput) (((svfluxn(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
-	    read(ifinput) (dsv(n),n=1,nsv)
-	    read(ifinput)  timee
-	    close(ifinput)
-	  end if
+		close(ifinput)
 
-	  !! SOUTH PROCESSOR
-	  name(5:5) = 'd'
-	  name(13:20) = csid
-	  write(6,*) 'South processor: ',name
-	  open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
+		if (nsv>0) then
+		  name(5:5) = 's'
+		  write(6,*) 'North processor n: ',name
+		  open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
+		  read(ifinput) ((((sv0n(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
+		  read(ifinput) (((svfluxn(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
+		  read(ifinput) (dsv(n),n=1,nsv)
+		  read(ifinput)  timee
+		  close(ifinput)
+		end if
 
-	  read(ifinput)  (((u0s    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((v0s    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((w0s    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((thl0s  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qt0s   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0s   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ql0hs  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((e120s  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((dthvdzs(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekms   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((ekhs   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((tmp0s   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((esls   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvsls   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((qvsis   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)   ((ustars (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((thlfluxs (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qtfluxs  (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dthldzs(i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((dqtdzs (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)  (  presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  presh (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
-	  read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
-	  read(ifinput)  ps,thls,qts,thvs,oblav
-	  read(ifinput)  dtheta,dqt,timee,dt,tres
-	  read(ifinput)   ((obls (i,j  ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((tskins(i,j ),i=1,i2      ),j=1,j2      )
-	  read(ifinput)   ((qskins(i,j ),i=1,i2      ),j=1,j2      )
+		!! SOUTH PROCESSOR
+		name(5:5) = 'd'
+		name(13:20) = csid
+		write(6,*) 'South processor: ',name
+		open(unit=ifinput,file=trim(inpath)//'/'//name,form='unformatted', status='old')
 
-	!!!!! radiation quantities
-	  read(ifinput)  tnext_radiation
-	  read(ifinput)  (((thlprads (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swds     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swus     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwds     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwus     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdcas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swucas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwdcas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwucas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdirs   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((swdifs   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  read(ifinput)  (((lwcs     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((u0s    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((v0s    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((w0s    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((thl0s  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qt0s   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0s   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ql0hs  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((e120s  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((dthvdzs(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekms   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((ekhs   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((tmp0s   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((esls   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvsls   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((qvsis   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)   ((ustars (i,j  ),i=1,i2      ),j=1,j2      )
+	    read(ifinput)   ((thlfluxs (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qtfluxs  (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dthldzs(i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((dqtdzs (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)  (  presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  presh (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presf (    k)                            ,k=1,k1)
+		read(ifinput)  (  initial_presh (    k)                            ,k=1,k1)
+		read(ifinput)  ps,thls,qts,thvs,oblav
+		read(ifinput)  dtheta,dqt,timee,dt,tres
+		read(ifinput)   ((obls (i,j  ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((tskins(i,j ),i=1,i2      ),j=1,j2      )
+		read(ifinput)   ((qskins(i,j ),i=1,i2      ),j=1,j2      )
 
-	  read(ifinput)  ((SW_up_TOAs    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_TOAs    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_TOAs    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_TOAs    (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_up_ca_TOAs (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((SW_dn_ca_TOAs (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_up_ca_TOAs (i,j ),i=1,i2),j=1,j2)
-	  read(ifinput)  ((LW_dn_ca_TOAs (i,j ),i=1,i2),j=1,j2)
+		!!!!! radiation quantities
+		read(ifinput)  tnext_radiation
+		read(ifinput)  (((thlprads (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swds     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swus     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwds     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwus     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdcas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swucas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwdcas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwucas   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdirs   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((swdifs   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+		read(ifinput)  (((lwcs     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
 
-	  close(ifinput)
+		read(ifinput)  ((SW_up_TOAs    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_TOAs    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_TOAs    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_dn_TOAs    (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_up_ca_TOAs (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((SW_dn_ca_TOAs (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_up_ca_TOAs (i,j ),i=1,i2),j=1,j2)
+		read(ifinput)  ((LW_dn_ca_TOAs (i,j ),i=1,i2),j=1,j2)
 
-	  if (nsv>0) then
-	    name(5:5) = 's'
-	    write(6,*) 'East processor s: ',name
-	    open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
-	    read(ifinput) ((((sv0s(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
-	    read(ifinput) (((svfluxs(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
-	    read(ifinput) (dsv(n),n=1,nsv)
-	    read(ifinput)  timee
-	    close(ifinput)
-	  end if
+		close(ifinput)
 
-	  ! Getting variables from ewns needs to happen here!
-	  ! 1. Initialise output fields with the shape of the to-output files, which requires:
-	  !  - iadv switches / coarse graining factor
-	  !  - Appropriate allocation
-	  ! 2. Insert the central processor in the centre of each field, at the right index
-	  ! 3. Get the ewns values for each field and insert at the right index
+		if (nsv>0) then
+		  name(5:5) = 's'
+		  write(6,*) 'East processor s: ',name
+		  open(unit=ifinput,file=trim(outpath)//'/'//name,form='unformatted')
+		  read(ifinput) ((((sv0s(i,j,k,n),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1),n=1,nsv)
+		  read(ifinput) (((svfluxs(i,j,n),i=1,i2),j=1,j2),n=1,nsv)
+		  read(ifinput) (dsv(n),n=1,nsv)
+		  read(ifinput)  timee
+		  close(ifinput)
+		end if
+
+		  !!! INSERT BOUNDARY CELLS HERE !!!
+      end if ! iho > ih
+
+      !!
+      !! ADVECTION SCHEME SWITCH
+      !!
+
+      ! fields that are unaffected by ghost cells
+      ustaro = ustar
+      thlfluxo = thlflux
+      qtfluxo = qtflux
+      dthldzo = dthldz
+      dqtdzo = dqtdz
+      oblo = obl
+      tskino = tskin
+      qskino = qskin
+      SW_up_TOAo = SW_up_TOA
+      SW_dn_TOAo = SW_dn_TOA
+      LW_up_TOAo = LW_up_TOA
+      LW_dn_TOAo = LW_dn_TOA
+      SW_up_ca_TOAo = SW_up_ca_TOA
+      SW_dn_ca_TOAo = SW_dn_ca_TOA
+      LW_up_ca_TOAo = LW_up_ca_TOA
+      LW_dn_ca_TOAo = LW_dn_ca_TOA
+      
+      if (iho < ih) then
+        ! Your output is smaller than your input -> You just need to sample the central processor 
+
+        ! Indexing always starts at 2, i.e. x(2,2,:) always gives the first value in the processor,
+        ! regardless of the number of ghost cells. Hence, you just need to sample iho, jho values to
+        ! the left and right of this common indexing: xo = xi(2-iho:i1+iho, 2-jho:j1+jho, k1)
+        u0o = u0(2-iho:i1+iho, 2-jho:j1+jho,:)
+        v0o = v0(2-iho:i1+iho, 2-jho:j1+jho,:)
+        w0o = w0(2-iho:i1+iho, 2-jho:j1+jho,:)
+        thl0o = thl0(2-iho:i1+iho, 2-jho:j1+jho,:)
+        qt0o = qt0(2-iho:i1+iho, 2-jho:j1+jho,:)
+        ql0o = ql0(2-iho:i1+iho, 2-jho:j1+jho,:)
+        ql0ho = ql0h(2-iho:i1+iho, 2-jho:j1+jho,:)
+        e120o = e120(2-iho:i1+iho, 2-jho:j1+jho,:)
+        dthvdzo = dthvdz(2-iho:i1+iho, 2-jho:j1+jho,:)
+        ekmo = ekm(2-iho:i1+iho, 2-jho:j1+jho,:)
+        ekho = ekh(2-iho:i1+iho, 2-jho:j1+jho,:)
+        tmp0o = tmp0(2-iho:i1+iho, 2-jho:j1+jho,:)
+        eslo = esl(2-iho:i1+iho, 2-jho:j1+jho,:)
+        qvslo = qvsl(2-iho:i1+iho, 2-jho:j1+jho,:)
+        qvsio = qvsi(2-iho:i1+iho, 2-jho:j1+jho,:)
+        thlprado = thlprad(2-iho:i1+iho, 2-jho:j1+jho,:)
+        swdo = swd(2-iho:i1+iho, 2-jho:j1+jho,:)
+        swuo = swu(2-iho:i1+iho, 2-jho:j1+jho,:)
+        lwdo = lwd(2-iho:i1+iho, 2-jho:j1+jho,:)
+        lwuo = lwu(2-iho:i1+iho, 2-jho:j1+jho,:)
+        swdcao = swdca(2-iho:i1+iho, 2-jho:j1+jho,:)
+        swucao = swuca(2-iho:i1+iho, 2-jho:j1+jho,:)
+        lwdcao = lwdca(2-iho:i1+iho, 2-jho:j1+jho,:)
+        lwucao = lwuca(2-iho:i1+iho, 2-jho:j1+jho,:)
+        swdiro = swdir(2-iho:i1+iho, 2-jho:j1+jho,:)
+        swdifo = swdif(2-iho:i1+iho, 2-jho:j1+jho,:)
+        lwco = lwc(2-iho:i1+iho, 2-jho:j1+jho,:)
+
+      else
+      	u0o = u0
+        v0o = v0
+        w0o = w0
+        thl0o = thl0
+        qt0o = qt0
+        ql0o = ql0
+        ql0ho = ql0h
+        e120o = e120
+        dthvdzo = dthvdz
+        ekmo = ekm
+        ekho = ekh
+        tmp0o = tmp0
+        eslo = esl
+        qvslo = qvsl
+        qvsio = qvsi
+        thlprado = thlprad
+        swdo = swd
+        swuo = swu
+        lwdo = lwd
+        lwuo = lwu
+        swdcao = swdca
+        swucao = swuca
+        lwdcao = lwdca
+        lwucao = lwuca
+        swdiro = swdir
+        swdifo = swdif
+        lwco = lwc
+	  end if ! iho > ih
 
 	  ! And write
 
@@ -1116,59 +1202,59 @@ program reproject
 	  write(6,*) 'writing ',name
 	  open(ifoutput,file=trim(outpath)//'/'//name,form='unformatted',status='replace')
 
-	  write(ifoutput)  (((u0 (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((v0 (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((w0    (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((thl0  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((qt0   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((ql0   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((ql0h  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((e120  (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((dthvdz(i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((ekm   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((ekh   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((tmp0   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((esl   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((qvsl   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((qvsi   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)   ((ustar (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((thlflux (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((qtflux  (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((dthldz(i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((dqtdz (i,j  ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)  (((u0o    (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((v0o    (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((w0o    (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((thl0o  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((qt0o   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((ql0o   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((ql0ho  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((e120o  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((dthvdzo(i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((ekmo   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((ekho   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((tmp0o  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((eslo   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((qvslo  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((qvsio  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  ((ustaro  (i,j  ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)  ((thlfluxo(i,j  ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)  ((qtfluxo (i,j  ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)  ((dthldzo (i,j  ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)  ((dqtdzo  (i,j  ),i=1,i2      ),j=1,j2      )
 	  write(ifoutput)  (  presf (    k)                            ,k=1,k1)
 	  write(ifoutput)  (  presh (    k)                            ,k=1,k1)
 	  write(ifoutput)  (  initial_presf (    k)                            ,k=1,k1)
 	  write(ifoutput)  (  initial_presh (    k)                            ,k=1,k1)
 	  write(ifoutput)  ps,thls,qts,thvs,oblav
 	  write(ifoutput)  dtheta,dqt,timee,  dt,tres
-	  write(ifoutput)   ((obl (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((tskin(i,j ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((qskin(i,j ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)   ((oblo (i,j  ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)   ((tskino(i,j ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)   ((qskino(i,j ),i=1,i2      ),j=1,j2      )
 
 	!!!!! radiation quantities
 	  write(ifoutput)  tnext_radiation
-	  write(ifoutput)  (((thlprad (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((swd     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((swu     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((lwd     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((lwu     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((swdca   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((swuca   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((lwdca   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((lwuca   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((swdir   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((swdif   (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
-	  write(ifoutput)  (((lwc     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
+	  write(ifoutput)  (((thlprado (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((swdo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((swuo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((lwdo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((lwuo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((swdcao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((swucao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((lwdcao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((lwucao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((swdiro   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((swdifo   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((lwco     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
 
-	  write(ifoutput)  ((SW_up_TOA    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((SW_dn_TOA    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_up_TOA    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_dn_TOA    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((SW_up_ca_TOA (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((SW_dn_ca_TOA (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_up_ca_TOA (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_dn_ca_TOA (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((SW_up_TOAo    (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((SW_dn_TOAo    (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((LW_up_TOAo    (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((LW_dn_TOAo    (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((SW_up_ca_TOAo (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((SW_dn_ca_TOAo (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((LW_up_ca_TOAo (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((LW_dn_ca_TOAo (i,j ),i=1,i2),j=1,j2)
 
 	  close (ifoutput)
 
