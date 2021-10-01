@@ -11,6 +11,7 @@ program reproject
   character(256) :: outpath = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/code/dalesruns/bomex_test'
   ! integer :: ierr
 
+  ! SETTINGS FROM INPUT SIMULATION
   ! Could read this from namoptions.001, but then you'll have to parse all the inputs (and we don't want that)
   character(50) :: name = 'initd000h10mx000y000.001'
   integer :: nsv = 0
@@ -25,18 +26,36 @@ program reproject
   integer :: iadv_qt = 52
   integer :: iadv_sv(100) = -1
 
-  ! DECLARATIONS
+  ! SETTINGS FOR DESIRED OUTPUT SIMULATION
+  integer :: itoto = 64
+  integer :: jtoto = 64
+  integer :: kmaxo = 80
+  integer :: iadv_momo = 52
+  integer :: iadv_tkeo = 52
+  integer :: iadv_thlo = 52
+  integer :: iadv_qto = 52
+  integer :: iadv_svo(100) = -1  
+
+  !!
+  !! DECLARATIONS
+  !!
+
+  !! INTEGERS AND CHARACTERS
   integer, parameter :: ifinput = 1
   integer, parameter :: ifoutput = 2
   integer, parameter :: longint = 8
   integer :: procx, procy
-  integer :: imax, jmax, i1, j1, k1, i2, j2, k2, ih, jh, kh, i, j, k, n
+  integer :: i, j, k, n
+  integer :: imax, jmax, i1, j1, k1, i2, j2, k2, ih, jh, kh
+  integer :: imaxo, jmaxo, i1o, j1o, k1o, i2o, j2o, k2o, iho, jho, kho
   integer :: advarr(4)
   character(8) :: cmyid
   character(8) :: ceid
   character(8) :: cwid
   character(8) :: cnid
   character(8) :: csid
+
+  !! INPUT ALLOCATABLE FIELDS
 
   !! CENTRAL PROCESSOR
   real, allocatable :: u0(:,:,:)        !<   x-component of velocity at time step t
@@ -76,8 +95,6 @@ program reproject
   real, allocatable :: obl(:,:)         !<  Obukhov length [m]
   real, allocatable :: tskin(:,:)       !<  Skin temperature [K]
   real, allocatable :: qskin(:,:)       !<  Skin specific humidity [kg/kg]
-
-  ! Radiation
   integer (kind=longint) :: tnext_radiation  !<  time of the first upcoming call of the radiation scheme
   real, allocatable :: thlprad(:,:,:)!<   the radiative tendencies
   real, allocatable :: swd(:,:,:)    !<   shortwave downward radiative flux
@@ -87,15 +104,12 @@ program reproject
   real, allocatable :: swu(:,:,:)    !<   shortwave upward radiative flux
   real, allocatable :: lwd(:,:,:)    !<   longwave downward radiative flux
   real, allocatable :: lwu(:,:,:)    !<   longwave upward radiative flux
-!
   real, allocatable :: swdca(:,:,:)  !<  clear air shortwave downward radiative flux
   real, allocatable :: swuca(:,:,:)  !<  clear air shortwave upward radiative flux
   real, allocatable :: lwdca(:,:,:)  !<  clear air longwave downward radiative flux
   real, allocatable :: lwuca(:,:,:)  !<  clear air longwave upward radiative flux
-
   real, allocatable :: SW_up_TOA(:,:), SW_dn_TOA(:,:), LW_up_TOA(:,:), LW_dn_TOA(:,:) !< Top of the atmosphere radiative fluxes
   real, allocatable :: SW_up_ca_TOA(:,:), SW_dn_ca_TOA(:,:), LW_up_ca_TOA(:,:), LW_dn_ca_TOA(:,:)
-
   ! Scalars
   real, allocatable :: sv0(:,:,:,:)     !<  scalar sv(n) at time step t
   real, allocatable :: svflux  (:,:,:)  !<  Kinematic scalar flux [- m/s]
@@ -125,8 +139,6 @@ program reproject
   real, allocatable :: oble(:,:)         !<  Obukhov length [m]
   real, allocatable :: tskine(:,:)       !<  Skin temperature [K]
   real, allocatable :: qskine(:,:)       !<  Skin specific humidity [kg/kg]
-
-  ! Radiation
   real, allocatable :: thlprade(:,:,:)!<   the radiative tendencies
   real, allocatable :: swde(:,:,:)    !<   shortwave downward radiative flux
   real, allocatable :: swdire(:,:,:)  !<   Direct shortwave downward radiative flux
@@ -135,15 +147,12 @@ program reproject
   real, allocatable :: swue(:,:,:)    !<   shortwave upward radiative flux
   real, allocatable :: lwde(:,:,:)    !<   longwave downward radiative flux
   real, allocatable :: lwue(:,:,:)    !<   longwave upward radiative flux
-!
   real, allocatable :: swdcae(:,:,:)  !<  clear air shortwave downward radiative flux
   real, allocatable :: swucae(:,:,:)  !<  clear air shortwave upward radiative flux
   real, allocatable :: lwdcae(:,:,:)  !<  clear air longwave downward radiative flux
   real, allocatable :: lwucae(:,:,:)  !<  clear air longwave upward radiative flux
-
   real, allocatable :: SW_up_TOAe(:,:), SW_dn_TOAe(:,:), LW_up_TOAe(:,:), LW_dn_TOAe(:,:) !< Top of the atmosphere radiative fluxes
   real, allocatable :: SW_up_ca_TOAe(:,:), SW_dn_ca_TOAe(:,:), LW_up_ca_TOAe(:,:), LW_dn_ca_TOAe(:,:)
-
   ! Scalars
   real, allocatable :: sv0e(:,:,:,:)     !<  scalar sv(n) at time step t
   real, allocatable :: svfluxe  (:,:,:)  !<  Kinematic scalar flux [- m/s]
@@ -172,8 +181,6 @@ program reproject
   real, allocatable :: oblw(:,:)         !<  Obukhov length [m]
   real, allocatable :: tskinw(:,:)       !<  Skin temperature [K]
   real, allocatable :: qskinw(:,:)       !<  Skin specific humidity [kg/kg]
-
-  ! Radiation
   real, allocatable :: thlpradw(:,:,:)!<   the radiative tendencies
   real, allocatable :: swdw(:,:,:)    !<   shortwave downward radiative flux
   real, allocatable :: swdirw(:,:,:)  !<   Direct shortwave downward radiative flux
@@ -182,15 +189,12 @@ program reproject
   real, allocatable :: swuw(:,:,:)    !<   shortwave upward radiative flux
   real, allocatable :: lwdw(:,:,:)    !<   longwave downward radiative flux
   real, allocatable :: lwuw(:,:,:)    !<   longwave upward radiative flux
-!
   real, allocatable :: swdcaw(:,:,:)  !<  clear air shortwave downward radiative flux
   real, allocatable :: swucaw(:,:,:)  !<  clear air shortwave upward radiative flux
   real, allocatable :: lwdcaw(:,:,:)  !<  clear air longwave downward radiative flux
   real, allocatable :: lwucaw(:,:,:)  !<  clear air longwave upward radiative flux
-
   real, allocatable :: SW_up_TOAw(:,:), SW_dn_TOAw(:,:), LW_up_TOAw(:,:), LW_dn_TOAw(:,:) !< Top of the atmosphere radiative fluxes
   real, allocatable :: SW_up_ca_TOAw(:,:), SW_dn_ca_TOAw(:,:), LW_up_ca_TOAw(:,:), LW_dn_ca_TOAw(:,:)
-
   ! Scalars
   real, allocatable :: sv0w(:,:,:,:)     !<  scalar sv(n) at time step t
   real, allocatable :: svfluxw  (:,:,:)  !<  Kinematic scalar flux [- m/s]
@@ -219,8 +223,6 @@ program reproject
   real, allocatable :: obln(:,:)         !<  Obukhov length [m]
   real, allocatable :: tskinn(:,:)       !<  Skin temperature [K]
   real, allocatable :: qskinn(:,:)       !<  Skin specific humidity [kg/kg]
-
-  ! Radiation
   real, allocatable :: thlpradn(:,:,:)!<   the radiative tendencies
   real, allocatable :: swdn(:,:,:)    !<   shortwave downward radiative flux
   real, allocatable :: swdirn(:,:,:)  !<   Direct shortwave downward radiative flux
@@ -229,15 +231,12 @@ program reproject
   real, allocatable :: swun(:,:,:)    !<   shortwave upward radiative flux
   real, allocatable :: lwdn(:,:,:)    !<   longwave downward radiative flux
   real, allocatable :: lwun(:,:,:)    !<   longwave upward radiative flux
-!
   real, allocatable :: swdcan(:,:,:)  !<  clear air shortwave downward radiative flux
   real, allocatable :: swucan(:,:,:)  !<  clear air shortwave upward radiative flux
   real, allocatable :: lwdcan(:,:,:)  !<  clear air longwave downward radiative flux
   real, allocatable :: lwucan(:,:,:)  !<  clear air longwave upward radiative flux
-
   real, allocatable :: SW_up_TOAn(:,:), SW_dn_TOAn(:,:), LW_up_TOAn(:,:), LW_dn_TOAn(:,:) !< Top of the atmosphere radiative fluxes
   real, allocatable :: SW_up_ca_TOAn(:,:), SW_dn_ca_TOAn(:,:), LW_up_ca_TOAn(:,:), LW_dn_ca_TOAn(:,:)
-
   ! Scalars
   real, allocatable :: sv0n(:,:,:,:)     !<  scalar sv(n) at time step t
   real, allocatable :: svfluxn  (:,:,:)  !<  Kinematic scalar flux [- m/s]
@@ -266,8 +265,6 @@ program reproject
   real, allocatable :: obls(:,:)         !<  Obukhov length [m]
   real, allocatable :: tskins(:,:)       !<  Skin temperature [K]
   real, allocatable :: qskins(:,:)       !<  Skin specific humidity [kg/kg]
-
-  ! Radiation
   real, allocatable :: thlprads(:,:,:)!<   the radiative tendencies
   real, allocatable :: swds(:,:,:)    !<   shortwave downward radiative flux
   real, allocatable :: swdirs(:,:,:)  !<   Direct shortwave downward radiative flux
@@ -276,20 +273,21 @@ program reproject
   real, allocatable :: swus(:,:,:)    !<   shortwave upward radiative flux
   real, allocatable :: lwds(:,:,:)    !<   longwave downward radiative flux
   real, allocatable :: lwus(:,:,:)    !<   longwave upward radiative flux
-!
   real, allocatable :: swdcas(:,:,:)  !<  clear air shortwave downward radiative flux
   real, allocatable :: swucas(:,:,:)  !<  clear air shortwave upward radiative flux
   real, allocatable :: lwdcas(:,:,:)  !<  clear air longwave downward radiative flux
   real, allocatable :: lwucas(:,:,:)  !<  clear air longwave upward radiative flux
-
   real, allocatable :: SW_up_TOAs(:,:), SW_dn_TOAs(:,:), LW_up_TOAs(:,:), LW_dn_TOAs(:,:) !< Top of the atmosphere radiative fluxes
   real, allocatable :: SW_up_ca_TOAs(:,:), SW_dn_ca_TOAs(:,:), LW_up_ca_TOAs(:,:), LW_dn_ca_TOAs(:,:)
-
   ! Scalars
   real, allocatable :: sv0s(:,:,:,:)     !<  scalar sv(n) at time step t
   real, allocatable :: svfluxs (:,:,:)  !<  Kinematic scalar flux [- m/s]
 
-  ! Get ghost cells for input simulation
+  !!
+  !! GET GHOST CELLS
+  !!
+
+  !! INPUT SIMULATION
   imax = itot/nprocx
   jmax = jtot/nprocy
   i1=imax+1
@@ -333,7 +331,53 @@ program reproject
     kh = 1
   end if
 
-  ! DALES has already initialised all fields with their correct sizes before reading from files and assigning them -> need to do this too
+  ! OUTPUT SIMULATION
+  imaxo = itoto/nprocx
+  jmaxo = jtoto/nprocy
+  i1o=imaxo+1
+  j1o=jmaxo+1
+  k1o=kmaxo+1
+  k2o=kmaxo+2
+  i2o=imaxo+2
+  j2o=jmaxo+2
+  advarr = (/iadv_momo,iadv_tkeo,iadv_thlo,iadv_qto/)
+  if     (any(advarr==6).or.any(iadv_svo(1:nsv)==6)) then
+    iho = 3
+    jho = 3
+    kho = 1
+  elseif (any(advarr==62).or.any(iadv_svo(1:nsv)==62)) then
+    iho = 3
+    jho = 3
+    kho = 1
+  elseif (any(advarr==5).or.any(iadv_svo(1:nsv)==5)) then
+    iho = 3
+    jho = 3
+    kho = 1
+  elseif (any(advarr==52).or.any(iadv_svo(1:nsv)==52)) then
+    iho = 3
+    jho = 3
+    kho = 1
+  elseif (any(advarr==55).or.any(iadv_svo(1:nsv)==55)) then
+    iho = 3
+    jho = 3
+    kho = 1
+  elseif (any(advarr==555).or.any(iadv_svo(1:nsv)==555)) then
+    iho = 3
+    jho = 3
+    kho = 1
+  elseif (any(advarr==7).or.any(iadv_svo(1:nsv)==7)) then
+    iho = 2
+    jho = 2
+    kho = 1
+  elseif (any(advarr==2).or.any(iadv_svo(1:nsv)==2)) then
+    iho = 1
+    jho = 1
+    kho = 1
+  end if
+
+  !!
+  !! INITIALISE FIELDS
+  !!
 
   !! CENTRAL PROCESSOR
   allocate(u0   (2-ih:i1+ih,2-jh:j1+jh,k1))
@@ -434,7 +478,7 @@ program reproject
   allocate(sv0e  (2-ih:i1+ih,2-jh:j1+jh,k1,nsv))
   allocate(svfluxe  (i2,j2,nsv))
 
-!! WEST PROCESSOR
+  !! WEST PROCESSOR
   allocate(u0w   (2-ih:i1+ih,2-jh:j1+jh,k1))
   allocate(v0w   (2-ih:i1+ih,2-jh:j1+jh,k1))
   allocate(w0w   (2-ih:i1+ih,2-jh:j1+jh,k1))
@@ -575,7 +619,9 @@ program reproject
   allocate(sv0s  (2-ih:i1+ih,2-jh:j1+jh,k1,nsv))
   allocate(svfluxs  (i2,j2,nsv))
 
-  ! Loop over processors
+  !!
+  !! LOOP OVER TILES
+  !!
   do procx = 0, nprocx-1
   	do procy = 0, nprocy-1
 
