@@ -5,6 +5,7 @@ program reproject
   ! TODO:
   ! - Will not work if there are hetero fields
   ! - Will not work if isurf==1
+  ! - Assumes periodic BCs
 
   ! INPUTS SET BY USER
   character(256) :: inpath = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/code/dalesruns/bomex'
@@ -47,7 +48,7 @@ program reproject
   integer :: procx, procy
   integer :: i, j, k, n
   integer :: imax, jmax, i1, j1, k1, i2, j2, k2, ih, jh, kh
-  integer :: imaxo, jmaxo, i1o, j1o, k1o, i2o, j2o, k2o, iho, jho, kho
+  integer :: imaxo, jmaxo, i1o, j1o, i2o, j2o, iho, jho
   integer :: advarr(4)
   character(8) :: cmyid
   character(8) :: ceid
@@ -283,6 +284,48 @@ program reproject
   real, allocatable :: sv0s(:,:,:,:)     !<  scalar sv(n) at time step t
   real, allocatable :: svfluxs (:,:,:)  !<  Kinematic scalar flux [- m/s]
 
+  !! OUTPUT
+  real, allocatable :: u0o(:,:,:)        !<   x-component of velocity at time step t
+  real, allocatable :: v0o(:,:,:)        !<   y-component of velocity at time step t
+  real, allocatable :: w0o(:,:,:)        !<   z-component of velocity at time step t
+  real, allocatable :: thl0o(:,:,:)      !<   liq. water pot. temperature at time step t
+  real, allocatable :: qt0o(:,:,:)       !<   total specific humidity at time step t
+  real, allocatable :: ql0o(:,:,:)  		!<   liquid water content
+  real, allocatable :: ql0ho(:,:,:)
+  real, allocatable :: e120o(:,:,:)      !<   square root of turb. kin. energy at time step t
+  real, allocatable :: dthvdzo(:,:,:)	!<   theta_v at half level
+  real, allocatable :: ekmo(:,:,:)   	!< k-coefficient for momentum
+  real, allocatable :: ekho(:,:,:)  		!< k-coefficient for heat and q_tot
+  real, allocatable :: tmp0o(:,:,:) 		!<   temperature at full level
+  real, allocatable :: eslo(:,:,:)
+  real, allocatable :: qvslo(:,:,:)
+  real, allocatable :: qvsio(:,:,:)
+  real, allocatable :: ustaro (:,:)      !<  Friction velocity [m/s]
+  real, allocatable :: thlfluxo (:,:)    !<  Kinematic temperature flux [K m/s]
+  real, allocatable :: qtfluxo  (:,:)    !<  Kinematic specific humidity flux [kg/kg m/s]
+  real, allocatable :: dthldzo(:,:)      !<  Liquid water potential temperature gradient in surface layer [K/m]
+  real, allocatable :: dqtdzo (:,:)      !<  Specific humidity gradient in surface layer [kg/kg/m]
+  real, allocatable :: oblo(:,:)         !<  Obukhov length [m]
+  real, allocatable :: tskino(:,:)       !<  Skin temperature [K]
+  real, allocatable :: qskino(:,:)       !<  Skin specific humidity [kg/kg]
+  real, allocatable :: thlprado(:,:,:)!<   the radiative tendencies
+  real, allocatable :: swdo(:,:,:)    !<   shortwave downward radiative flux
+  real, allocatable :: swdiro(:,:,:)  !<   Direct shortwave downward radiative flux
+  real, allocatable :: swdifo(:,:,:)  !<   Difuse shortwave downward radiative flux
+  real, allocatable :: lwco(:,:,:)    !<   Liquid water content calculated in rrtmg
+  real, allocatable :: swuo(:,:,:)    !<   shortwave upward radiative flux
+  real, allocatable :: lwdo(:,:,:)    !<   longwave downward radiative flux
+  real, allocatable :: lwuo(:,:,:)    !<   longwave upward radiative flux
+  real, allocatable :: swdcao(:,:,:)  !<  clear air shortwave downward radiative flux
+  real, allocatable :: swucao(:,:,:)  !<  clear air shortwave upward radiative flux
+  real, allocatable :: lwdcao(:,:,:)  !<  clear air longwave downward radiative flux
+  real, allocatable :: lwucao(:,:,:)  !<  clear air longwave upward radiative flux
+  real, allocatable :: SW_up_TOAo(:,:), SW_dn_TOAo(:,:), LW_up_TOAo(:,:), LW_dn_TOAo(:,:) !< Top of the atmosphere radiative fluxes
+  real, allocatable :: SW_up_ca_TOAo(:,:), SW_dn_ca_TOAo(:,:), LW_up_ca_TOAo(:,:), LW_dn_ca_TOAo(:,:)
+  ! Scalars
+  real, allocatable :: sv0o(:,:,:,:)     !<  scalar sv(n) at time step t
+  real, allocatable :: svfluxo  (:,:,:)  !<  Kinematic scalar flux [- m/s]
+
   !!
   !! GET GHOST CELLS
   !!
@@ -336,43 +379,33 @@ program reproject
   jmaxo = jtoto/nprocy
   i1o=imaxo+1
   j1o=jmaxo+1
-  k1o=kmaxo+1
-  k2o=kmaxo+2
   i2o=imaxo+2
   j2o=jmaxo+2
   advarr = (/iadv_momo,iadv_tkeo,iadv_thlo,iadv_qto/)
   if     (any(advarr==6).or.any(iadv_svo(1:nsv)==6)) then
     iho = 3
     jho = 3
-    kho = 1
   elseif (any(advarr==62).or.any(iadv_svo(1:nsv)==62)) then
     iho = 3
     jho = 3
-    kho = 1
   elseif (any(advarr==5).or.any(iadv_svo(1:nsv)==5)) then
     iho = 3
     jho = 3
-    kho = 1
   elseif (any(advarr==52).or.any(iadv_svo(1:nsv)==52)) then
     iho = 3
     jho = 3
-    kho = 1
   elseif (any(advarr==55).or.any(iadv_svo(1:nsv)==55)) then
     iho = 3
     jho = 3
-    kho = 1
   elseif (any(advarr==555).or.any(iadv_svo(1:nsv)==555)) then
     iho = 3
     jho = 3
-    kho = 1
   elseif (any(advarr==7).or.any(iadv_svo(1:nsv)==7)) then
     iho = 2
     jho = 2
-    kho = 1
   elseif (any(advarr==2).or.any(iadv_svo(1:nsv)==2)) then
     iho = 1
     jho = 1
-    kho = 1
   end if
 
   !!
@@ -618,6 +651,53 @@ program reproject
   allocate(LW_dn_ca_TOAs(2-ih:i1+ih,2-jh:j1+jh)  )
   allocate(sv0s  (2-ih:i1+ih,2-jh:j1+jh,k1,nsv))
   allocate(svfluxs  (i2,j2,nsv))
+
+  !! OUTPUT PROCESSOR
+  allocate(u0o    (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(v0o    (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(w0o    (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(thl0o  (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(qt0o   (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(ql0o   (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(ql0ho  (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(e120o  (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(dthvdzo(2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(ekmo   (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(ekho   (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(tmp0o  (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(eslo   (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(qvslo  (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(qvsio  (2-iho:i1o+iho,2-jho:j1o+jho,k1))
+  allocate(ustaro   (i2o,j2o))
+  allocate(thlfluxo (i2o,j2o))
+  allocate(qtfluxo  (i2o,j2o))
+  allocate(dqtdzo   (i2o,j2o))
+  allocate(dthldzo  (i2o,j2o))
+  allocate(oblo(i2o,j2o))
+  allocate(tskino(i2o,j2o))
+  allocate(qskino(i2o,j2o))
+  allocate(thlprado   (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(swdo       (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(swuo       (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(lwdo       (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(lwuo       (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(swdcao     (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(swucao     (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(lwdcao     (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(lwucao     (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(swdiro     (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(swdifo     (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(lwco       (2-iho:i1o+iho,2-jho:j1o+jho,k1) )
+  allocate(SW_up_TOAo (2-iho:i1o+iho,2-jho:j1o+jho)    )
+  allocate(SW_dn_TOAo (2-iho:i1o+iho,2-jho:j1o+jho)    )
+  allocate(LW_up_TOAo (2-iho:i1o+iho,2-jho:j1o+jho)    )
+  allocate(LW_dn_TOAo (2-iho:i1o+iho,2-jho:j1o+jho)    )
+  allocate(SW_up_ca_TOAo(2-iho:i1o+iho,2-jho:j1o+jho)  )
+  allocate(SW_dn_ca_TOAo(2-iho:i1o+iho,2-jho:j1o+jho)  )
+  allocate(LW_up_ca_TOAo(2-iho:i1o+iho,2-jho:j1o+jho)  )
+  allocate(LW_dn_ca_TOAo(2-iho:i1o+iho,2-jho:j1o+jho)  )
+  allocate(sv0o  (2-iho:i1o+iho,2-jho:j1o+jho,k1,nsv))
+  allocate(svfluxo  (i2o,j2o,nsv))
 
   !!
   !! LOOP OVER TILES
@@ -1139,5 +1219,12 @@ program reproject
   deallocate(lwdcas, lwucas, swdirs, swdifs, lwcs, SW_up_TOAs, SW_dn_TOAs, LW_up_TOAs, LW_dn_TOAs)
   deallocate(SW_up_ca_TOAs, SW_dn_ca_TOAs, LW_up_ca_TOAs, LW_dn_ca_TOAs)
   deallocate(sv0s, svfluxs)
+
+  deallocate(u0o, v0o, w0o, thl0o, qt0o, ql0o, ql0ho, e120o, dthvdzo, ekmo, ekho, tmp0o, eslo, qvslo, qvsio)
+  deallocate(ustaro, thlfluxo, qtfluxo, dthldzo, dqtdzo)
+  deallocate(oblo, tskino, qskino, thlprado, swdo, swuo, lwdo, lwuo, swdcao, swucao)
+  deallocate(lwdcao, lwucao, swdiro, swdifo, lwco, SW_up_TOAo, SW_dn_TOAo, LW_up_TOAo, LW_dn_TOAo)
+  deallocate(SW_up_ca_TOAo, SW_dn_ca_TOAo, LW_up_ca_TOAo, LW_dn_ca_TOAo)
+  deallocate(sv0o, svfluxo)
 
 end program reproject
