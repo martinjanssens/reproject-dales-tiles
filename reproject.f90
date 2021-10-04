@@ -14,7 +14,7 @@ program reproject
 
   ! SETTINGS FROM INPUT SIMULATION
   ! Could read this from namoptions.001, but then you'll have to parse all the inputs (and we don't want that)
-  character(50) :: name = 'initd000h10mx000y000.001'
+  character(50) :: name = 'initd001h00mx000y000.001'
   integer :: nsv = 0
   integer :: nprocx = 4
   integer :: nprocy = 2
@@ -705,7 +705,9 @@ program reproject
   do procx = 0, nprocx-1
   	do procy = 0, nprocy-1
 
-      ! Get processor ids -> FIXME assumes periodic BCs
+      !! Get processor ids -> FIXME assumes periodic BCs
+
+      ! Central processor
       write(cmyid,'(a,i3.3,a,i3.3)') 'x', procx, 'y', procy ! Current
       
       ! East
@@ -736,7 +738,9 @@ program reproject
       	write(csid,'(a,i3.3,a,i3.3)') 'x', procx, 'y', 0
       end if
 
-	  ! Read restartfiles
+      !!
+	  !! READ RESTARTFILES
+	  !!
 
 	  !! CURRENT PROCESSOR
 	  name(5:5) = 'd'
@@ -774,7 +778,6 @@ program reproject
 	  read(ifinput)   ((tskin(i,j ),i=1,i2      ),j=1,j2      )
 	  read(ifinput)   ((qskin(i,j ),i=1,i2      ),j=1,j2      )
 
-	!!!!! radiation quantities
 	  read(ifinput)  tnext_radiation
 	  read(ifinput)  (((thlprad (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
 	  read(ifinput)  (((swd     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
@@ -997,7 +1000,6 @@ program reproject
 		read(ifinput)   ((tskinn(i,j ),i=1,i2      ),j=1,j2      )
 		read(ifinput)   ((qskinn(i,j ),i=1,i2      ),j=1,j2      )
 
-		!!!!! radiation quantities
 		read(ifinput)  tnext_radiation
 		read(ifinput)  (((thlpradn (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
 		read(ifinput)  (((swdn     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
@@ -1070,7 +1072,6 @@ program reproject
 		read(ifinput)   ((tskins(i,j ),i=1,i2      ),j=1,j2      )
 		read(ifinput)   ((qskins(i,j ),i=1,i2      ),j=1,j2      )
 
-		!!!!! radiation quantities
 		read(ifinput)  tnext_radiation
 		read(ifinput)  (((thlprads (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
 		read(ifinput)  (((swds     (i,j,k),i=2-ih,i1+ih),j=2-jh,j1+jh),k=1,k1)
@@ -1107,7 +1108,6 @@ program reproject
 		  close(ifinput)
 		end if
 
-		  !!! INSERT BOUNDARY CELLS HERE !!!
       end if ! iho > ih
 
       !!
@@ -1196,8 +1196,8 @@ program reproject
         lwco = lwc
 
       else
-      	! FIXME you now ignore the corners, is that okay?
-! 		print *, 'i1: ', i1, 'iho: ', iho, 'ih: ', ih
+      	! Your output fields are larger than your input fields -> Need to sample adjacent processors
+
       	! First insert the central processor
       	do i=2-ih, i1+ih
       	  do j=2-jh, j1+jh
@@ -1235,11 +1235,11 @@ program reproject
 
         ! Insert ghost cells. Account for:
       	! - counter i runs from 2-iho, not 0
-      	! - need rightmost points in w-proc, minus ghost cells from the central proc
+      	! - need first/last/last/first points in e/w/n/s-proc, minus ghost cells from the central proc
 
         ! Insert missing ghost cells on the east boundary
         do i=i1+ih+1, i1+iho
-          print *, 'EAST PROC: output i: ', i, 'input i: ', 1+i-i1
+!           print *, 'EAST PROC: output i: ', i, 'input i: ', 1+i-i1
           do j=2, j1
             do k=1, k1
         	  u0o(i,j,k) = u0e(1+i-i1,j,k)
@@ -1275,7 +1275,7 @@ program reproject
 
       	! Insert missing ghost cells on the west boundary
       	do i=2-iho, 1-ih
-          print *, 'WEST PROC: output i: ', i, 'input i: ', i1-(2-ih)+i
+!           print *, 'WEST PROC: output i: ', i, 'input i: ', i1-(2-ih)+i
       	  do j=2, j1
       	  	do k=1, k1
               u0o(i,j,k) = u0w(i1-(2-ih)+i, j, k)
@@ -1311,7 +1311,7 @@ program reproject
 
         ! Insert missing ghost cells on the north boundary
         do j=j1+jh+1, j1+jho
-          print *, 'NORTH PROC: output j: ', j, 'input j: ', 1+j-j1
+!           print *, 'NORTH PROC: output j: ', j, 'input j: ', 1+j-j1
           do i=2, i1
             do k=1, k1
         	  u0o(i,j,k) = u0n(i,1+j-j1,k)
@@ -1347,7 +1347,7 @@ program reproject
 
         ! Insert missing ghost cells on the south boundary
       	do j=2-jho, 1-jh
-          print *, 'SOUTH PROC: output j: ', j, 'input i: ', j1-(2-jh)+j
+!           print *, 'SOUTH PROC: output j: ', j, 'input i: ', j1-(2-jh)+j
           do i=2, i1
           	do k=1, k1
               u0o(i,j,k) = u0s(i, j1-(2-jh)+j, k)
