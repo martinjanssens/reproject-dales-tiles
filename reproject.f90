@@ -21,10 +21,10 @@ program reproject
   integer :: itot = 64
   integer :: jtot = 64
   integer :: kmax = 80
-  integer :: iadv_mom = 52
-  integer :: iadv_tke = 52
-  integer :: iadv_thl = 52
-  integer :: iadv_qt = 52
+  integer :: iadv_mom = 2
+  integer :: iadv_tke = 2
+  integer :: iadv_thl = 2
+  integer :: iadv_qt = 2
   integer :: iadv_sv(100) = -1
 
   ! SETTINGS FOR DESIRED OUTPUT SIMULATION
@@ -1166,7 +1166,7 @@ program reproject
         swdifo = swdif(2-iho:i1+iho, 2-jho:j1+jho,:)
         lwco = lwc(2-iho:i1+iho, 2-jho:j1+jho,:)
 
-      else
+      else if (iho == ih) then
       	u0o = u0
         v0o = v0
         w0o = w0
@@ -1194,6 +1194,43 @@ program reproject
         swdiro = swdir
         swdifo = swdif
         lwco = lwc
+
+      else
+      	! FIXME you now ignore the corners, is that okay?
+! 		print *, 'i1: ', i1, 'iho: ', iho, 'ih: ', ih
+      	! First insert the central processor
+      	do i=2-ih, i1+ih
+      	  do j=2-jh, j1+jh
+      	  	do k=1, k1
+      	      u0o(i,j,k) = u0(i,j,k)
+      	    end do
+          end do
+        end do
+
+        ! Ghost cells. Account for:
+      	! - counter i runs from 2-iho, not 0
+      	! - need rightmost points in w-proc, minus ghost cells from the central proc
+
+        ! Insert missing ghost cells on the east boundary
+        do i=i1+ih+1, i1+ih+iho-ih
+        	print *, 'EAST PROC: output i: ', i, 'input i: ', 1+i-i1
+        	do j=2, j1
+        		do k=1, k1
+        			u0o(i,j,k) = u0e(1+i-i1,j,k)
+    			end do
+			end do
+        end do
+
+      	! Insert missing ghost cells on the west boundary
+      	do i=2-iho, 1-ih
+          print *, 'WEST PROC: output i: ', i, 'input i: ', i1-(2-ih)+i
+      	  do j=2, j1
+      	  	do k=1, k1
+              u0o(i,j,k) = u0w(i1-(2-ih)+i, j, k) 
+            end do
+          end do
+        end do
+
 	  end if ! iho > ih
 
 	  ! And write
