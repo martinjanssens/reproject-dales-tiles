@@ -1207,18 +1207,18 @@ program reproject
           end do
         end do
 
-        ! Ghost cells. Account for:
+        ! Insert ghost cells. Account for:
       	! - counter i runs from 2-iho, not 0
       	! - need rightmost points in w-proc, minus ghost cells from the central proc
 
         ! Insert missing ghost cells on the east boundary
-        do i=i1+ih+1, i1+ih+iho-ih
-        	print *, 'EAST PROC: output i: ', i, 'input i: ', 1+i-i1
-        	do j=2, j1
-        		do k=1, k1
-        			u0o(i,j,k) = u0e(1+i-i1,j,k)
-    			end do
-			end do
+        do i=i1+ih+1, i1+iho
+          print *, 'EAST PROC: output i: ', i, 'input i: ', 1+i-i1
+          do j=2, j1
+            do k=1, k1
+        	  u0o(i,j,k) = u0e(1+i-i1,j,k)
+    		end do
+		  end do
         end do
 
       	! Insert missing ghost cells on the west boundary
@@ -1227,6 +1227,26 @@ program reproject
       	  do j=2, j1
       	  	do k=1, k1
               u0o(i,j,k) = u0w(i1-(2-ih)+i, j, k) 
+            end do
+          end do
+        end do
+
+        ! Insert missing ghost cells on the north boundary
+        do j=j1+jh+1, j1+jho
+          print *, 'NORTH PROC: output j: ', j, 'input j: ', 1+j-j1
+          do i=2, i1
+            do k=1, k1
+        	  u0o(i,j,k) = u0n(i,1+j-j1,k)
+    		end do
+		  end do
+        end do
+
+        ! Insert missing ghost cells on the south boundary
+      	do j=2-jho, 1-jh
+          print *, 'SOUTH PROC: output j: ', j, 'input i: ', j1-(2-jh)+j
+          do i=2, i1
+          	do k=1, k1
+              u0o(i,j,k) = u0s(i, j1-(2-jh)+j, k) 
             end do
           end do
         end do
