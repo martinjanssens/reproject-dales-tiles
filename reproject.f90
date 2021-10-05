@@ -21,20 +21,20 @@ program reproject
   integer :: itot = 64
   integer :: jtot = 64
   integer :: kmax = 80
-  integer :: iadv_mom = 2
-  integer :: iadv_tke = 2
-  integer :: iadv_thl = 2
-  integer :: iadv_qt = 2
+  integer :: iadv_mom = 52
+  integer :: iadv_tke = 52
+  integer :: iadv_thl = 52
+  integer :: iadv_qt = 52
   integer :: iadv_sv(100) = -1
 
   ! SETTINGS FOR DESIRED OUTPUT SIMULATION
   integer :: itoto = 32
   integer :: jtoto = 32
   integer :: kmaxo = 80
-  integer :: iadv_momo = 2
-  integer :: iadv_tkeo = 2
-  integer :: iadv_thlo = 2
-  integer :: iadv_qto = 2
+  integer :: iadv_momo = 52
+  integer :: iadv_tkeo = 52
+  integer :: iadv_thlo = 52
+  integer :: iadv_qto = 52
   integer :: iadv_svo(100) = -1  
 
   !!
@@ -1448,6 +1448,25 @@ program reproject
 ! 	  	  	end if
 	  	  	do k=1,k1
 	  	  	  u0o(i,j,k) = sum(u0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	end do
+	  	  end do
+	  	  ij = 0
+	  	end do
+
+	    ! West boundary
+	  	u0w = 1.
+	  	ii = i1-(iho+1)*ncoarse+1 ! Start iho*ncoarse+1 left of east boundary of western proc
+	  	ij = 2-ncoarse
+	  	do i=2-iho,1
+	  	  ii = ii+ncoarse
+	  	  do j=2,j1o
+	  	  	ij = ij+ncoarse
+	  	  	if (procx == 0 .and. procy == 0) then
+	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
+	  	  	  print *, sum(u0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
+	  	  	end if
+	  	  	do k=1,k1
+	  	  	  u0o(i,j,k) = sum(u0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
 	  	  	end do
 	  	  end do
 	  	  ij = 0
