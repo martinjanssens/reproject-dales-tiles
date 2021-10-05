@@ -41,12 +41,12 @@ program reproject
   !! DECLARATIONS
   !!
 
-  !! INTEGERS, CHARACTERS AND SWITCHES
+  !! INTEGERS, CHARACTERS, REALS, SWITCHES
   integer, parameter :: ifinput = 1
   integer, parameter :: ifoutput = 2
   integer, parameter :: longint = 8
   integer :: procx, procy
-  integer :: i, j, k, n
+  integer :: i, j, k, n, ii, ij
   integer :: imax, jmax, i1, j1, k1, i2, j2, k2, ih, jh, kh
   integer :: imaxo, jmaxo, i1o, j1o, i2o, j2o, iho, jho
   integer :: ncoarse
@@ -56,6 +56,7 @@ program reproject
   character(8) :: cwid
   character(8) :: cnid
   character(8) :: csid
+  real    :: ncoarse2i
   logical :: ladv
   logical :: lcoarse
 
@@ -425,6 +426,7 @@ program reproject
   ! FIXME not tested whether you could do both advection and mesh switch
   ! FIXME what happens to integer division?
   ncoarse = itot / itoto
+  ncoarse2i = 1./(ncoarse*ncoarse)
   if (ncoarse > 1) then
   	lcoarse = .true.
   	print *, 'Number of cells per input processor is ', ncoarse, 'times larger than output, running coarse graining'
@@ -1408,8 +1410,48 @@ program reproject
 
 	    end if ! iho > ih
 
+	  !!
+	  !! COARSE-GRAINING SWITCH
+	  !!
 	  elseif (lcoarse) then
-	  	print *, 'lcoarse nnot yet implemented.'
+	  	
+	    ! Central processor
+! 	  	u0 = 1.
+	  	ii = 2-ncoarse
+	  	ij = 2-ncoarse
+	  	do i=2,i1o
+	  	  ii = ii+ncoarse
+	  	  do j=2,j1o
+	  	  	ij = ij+ncoarse
+! 	  	  	if (procx == 0 .and. procy == 0) then
+! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
+! 	  	  	  print *, sum(u0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
+! 	  	  	end if
+	  	  	do k=1,k1
+	  	  	  u0o(i,j,k) = sum(u0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	end do
+	  	  end do
+	  	  ij = 0
+	  	end do
+
+	  	! East boundary
+! 	  	u0e = 1.
+	  	ii = 2-ncoarse ! Start at west boundary of eastern proc
+	  	ij = 2-ncoarse
+	  	do i=i2o,i1o+iho
+	  	  ii = ii+ncoarse
+	  	  do j=2,j1o
+	  	  	ij = ij+ncoarse
+! 	  	  	if (procx == 0 .and. procy == 0) then
+! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
+! 	  	  	  print *, sum(u0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
+! 	  	  	end if
+	  	  	do k=1,k1
+	  	  	  u0o(i,j,k) = sum(u0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	end do
+	  	  end do
+	  	  ij = 0
+	  	end do
 
 	  end if ! ladv / lcoarse
 	  
