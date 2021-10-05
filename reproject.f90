@@ -8,33 +8,33 @@ program reproject
   ! - Assumes periodic BCs
 
   ! INPUTS SET BY USER
-  character(256) :: inpath = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/code/dalesruns/bomex'
-  character(256) :: outpath = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/code/dalesruns/bomex_test'
+  character(256) :: inpath = '/scratch-shared/janssens/bomex200aswitch/a5'
+  character(256) :: outpath = '/scratch-shared/janssens/bomex200aswitch/a2_froma5_12hr'
   ! integer :: ierr
 
   ! SETTINGS FROM INPUT SIMULATION
   ! Could read this from namoptions.001, but then you'll have to parse all the inputs (and we don't want that)
-  character(50) :: name = 'initd001h00mx000y000.001'
+  character(50) :: name = 'initd012h00mx000y000.001'
   integer :: nsv = 0
-  integer :: nprocx = 4
-  integer :: nprocy = 2
-  integer :: itot = 64
-  integer :: jtot = 64
-  integer :: kmax = 80
-  integer :: iadv_mom = 2
-  integer :: iadv_tke = 2
-  integer :: iadv_thl = 2
-  integer :: iadv_qt = 2
+  integer :: nprocx = 8
+  integer :: nprocy = 8
+  integer :: itot = 512
+  integer :: jtot = 512
+  integer :: kmax = 180
+  integer :: iadv_mom = 52
+  integer :: iadv_tke = 52
+  integer :: iadv_thl = 52
+  integer :: iadv_qt = 52
   integer :: iadv_sv(100) = -1
 
   ! SETTINGS FOR DESIRED OUTPUT SIMULATION
-  integer :: itoto = 64
-  integer :: jtoto = 64
-  integer :: kmaxo = 80
-  integer :: iadv_momo = 52
-  integer :: iadv_tkeo = 52
-  integer :: iadv_thlo = 52
-  integer :: iadv_qto = 52
+  integer :: itoto = 512
+  integer :: jtoto = 512
+  integer :: kmaxo = 180
+  integer :: iadv_momo = 2
+  integer :: iadv_tkeo = 2
+  integer :: iadv_thlo = 2
+  integer :: iadv_qto = 2
   integer :: iadv_svo(100) = -1  
 
   !!
