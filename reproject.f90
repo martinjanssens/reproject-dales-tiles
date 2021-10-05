@@ -14,7 +14,7 @@ program reproject
 
   ! SETTINGS FROM INPUT SIMULATION
   ! Could read this from namoptions.001, but then you'll have to parse all the inputs (and we don't want that)
-  character(50) :: name = 'initd001h00mx000y000.001'
+  character(50) :: name = 'initd000h10mx000y000.001'
   integer :: nsv = 0
   integer :: nprocx = 4
   integer :: nprocy = 2
@@ -28,20 +28,20 @@ program reproject
   integer :: iadv_sv(100) = -1
 
   ! SETTINGS FOR DESIRED OUTPUT SIMULATION
-  integer :: itoto = 64
-  integer :: jtoto = 64
+  integer :: itoto = 32
+  integer :: jtoto = 32
   integer :: kmaxo = 80
-  integer :: iadv_momo = 52
-  integer :: iadv_tkeo = 52
-  integer :: iadv_thlo = 52
-  integer :: iadv_qto = 52
+  integer :: iadv_momo = 2
+  integer :: iadv_tkeo = 2
+  integer :: iadv_thlo = 2
+  integer :: iadv_qto = 2
   integer :: iadv_svo(100) = -1  
 
   !!
   !! DECLARATIONS
   !!
 
-  !! INTEGERS AND CHARACTERS
+  !! INTEGERS, CHARACTERS AND SWITCHES
   integer, parameter :: ifinput = 1
   integer, parameter :: ifoutput = 2
   integer, parameter :: longint = 8
@@ -49,12 +49,15 @@ program reproject
   integer :: i, j, k, n
   integer :: imax, jmax, i1, j1, k1, i2, j2, k2, ih, jh, kh
   integer :: imaxo, jmaxo, i1o, j1o, i2o, j2o, iho, jho
+  integer :: ncoarse
   integer :: advarr(4)
   character(8) :: cmyid
   character(8) :: ceid
   character(8) :: cwid
   character(8) :: cnid
   character(8) :: csid
+  logical :: ladv
+  logical :: lcoarse
 
   !! INPUT ALLOCATABLE FIELDS
 
@@ -406,6 +409,27 @@ program reproject
   elseif (any(advarr==2).or.any(iadv_svo(1:nsv)==2)) then
     iho = 1
     jho = 1
+  end if
+
+  ! SET ADVECTION SWITCH
+  if (iho.ne.ih .or. jho.ne.jh) then
+  	ladv=.true.
+  	print *, 'Number of output ghost cells:', iho
+  	print *, 'Number of input ghost cells:', ih
+  	print *, 'Running advection scheme switch routine'
+  else
+  	ladv=.false.
+  end if
+
+  ! SET COARSE-GRAINING SWITCH
+  ! FIXME not tested whether you could do both advection and mesh switch
+  ! FIXME what happens to integer division?
+  ncoarse = itot / itoto
+  if (ncoarse > 1) then
+  	lcoarse = .true.
+  	print *, 'Number of cells per input processor is ', ncoarse, 'times larger than output, running coarse graining'
+  else
+  	lcoarse = .false.
   end if
 
   !!
@@ -816,7 +840,7 @@ program reproject
 
       ! If the input fields are bigger than the output fields, you don't need the adjacent procs
       ! Assumes ih and jh behave consistently
-      if (iho > ih) then
+      if (iho > ih .or. lcoarse) then
 
 		!! EAST PROCESSOR
 		name(5:5) = 'd'
@@ -1108,283 +1132,291 @@ program reproject
 		  close(ifinput)
 		end if
 
-      end if ! iho > ih
+      end if ! iho > ih .or. lcoarse
 
       !!
       !! ADVECTION SCHEME SWITCH
       !!
-
-      ! fields that are unaffected by ghost cells
-      ustaro = ustar
-      thlfluxo = thlflux
-      qtfluxo = qtflux
-      dthldzo = dthldz
-      dqtdzo = dqtdz
-      oblo = obl
-      tskino = tskin
-      qskino = qskin
-      SW_up_TOAo = SW_up_TOA
-      SW_dn_TOAo = SW_dn_TOA
-      LW_up_TOAo = LW_up_TOA
-      LW_dn_TOAo = LW_dn_TOA
-      SW_up_ca_TOAo = SW_up_ca_TOA
-      SW_dn_ca_TOAo = SW_dn_ca_TOA
-      LW_up_ca_TOAo = LW_up_ca_TOA
-      LW_dn_ca_TOAo = LW_dn_ca_TOA
+      if (ladv) then
+        ! fields that are unaffected by ghost cells
+        ustaro = ustar
+        thlfluxo = thlflux
+        qtfluxo = qtflux
+        dthldzo = dthldz
+        dqtdzo = dqtdz
+        oblo = obl
+        tskino = tskin
+        qskino = qskin
+        SW_up_TOAo = SW_up_TOA
+        SW_dn_TOAo = SW_dn_TOA
+        LW_up_TOAo = LW_up_TOA
+        LW_dn_TOAo = LW_dn_TOA
+        SW_up_ca_TOAo = SW_up_ca_TOA
+        SW_dn_ca_TOAo = SW_dn_ca_TOA
+        LW_up_ca_TOAo = LW_up_ca_TOA
+        LW_dn_ca_TOAo = LW_dn_ca_TOA
       
-      if (iho < ih) then
-        ! Your output is smaller than your input -> You just need to sample the central processor 
+        if (iho < ih) then
+          ! Your output is smaller than your input -> You just need to sample the central processor 
 
-        ! Indexing always starts at 2, i.e. x(2,2,:) always gives the first value in the processor,
-        ! regardless of the number of ghost cells. Hence, you just need to sample iho, jho values to
-        ! the left and right of this common indexing: xo = xi(2-iho:i1+iho, 2-jho:j1+jho, k1)
-        u0o = u0(2-iho:i1+iho, 2-jho:j1+jho,:)
-        v0o = v0(2-iho:i1+iho, 2-jho:j1+jho,:)
-        w0o = w0(2-iho:i1+iho, 2-jho:j1+jho,:)
-        thl0o = thl0(2-iho:i1+iho, 2-jho:j1+jho,:)
-        qt0o = qt0(2-iho:i1+iho, 2-jho:j1+jho,:)
-        ql0o = ql0(2-iho:i1+iho, 2-jho:j1+jho,:)
-        ql0ho = ql0h(2-iho:i1+iho, 2-jho:j1+jho,:)
-        e120o = e120(2-iho:i1+iho, 2-jho:j1+jho,:)
-        dthvdzo = dthvdz(2-iho:i1+iho, 2-jho:j1+jho,:)
-        ekmo = ekm(2-iho:i1+iho, 2-jho:j1+jho,:)
-        ekho = ekh(2-iho:i1+iho, 2-jho:j1+jho,:)
-        tmp0o = tmp0(2-iho:i1+iho, 2-jho:j1+jho,:)
-        eslo = esl(2-iho:i1+iho, 2-jho:j1+jho,:)
-        qvslo = qvsl(2-iho:i1+iho, 2-jho:j1+jho,:)
-        qvsio = qvsi(2-iho:i1+iho, 2-jho:j1+jho,:)
-        thlprado = thlprad(2-iho:i1+iho, 2-jho:j1+jho,:)
-        swdo = swd(2-iho:i1+iho, 2-jho:j1+jho,:)
-        swuo = swu(2-iho:i1+iho, 2-jho:j1+jho,:)
-        lwdo = lwd(2-iho:i1+iho, 2-jho:j1+jho,:)
-        lwuo = lwu(2-iho:i1+iho, 2-jho:j1+jho,:)
-        swdcao = swdca(2-iho:i1+iho, 2-jho:j1+jho,:)
-        swucao = swuca(2-iho:i1+iho, 2-jho:j1+jho,:)
-        lwdcao = lwdca(2-iho:i1+iho, 2-jho:j1+jho,:)
-        lwucao = lwuca(2-iho:i1+iho, 2-jho:j1+jho,:)
-        swdiro = swdir(2-iho:i1+iho, 2-jho:j1+jho,:)
-        swdifo = swdif(2-iho:i1+iho, 2-jho:j1+jho,:)
-        lwco = lwc(2-iho:i1+iho, 2-jho:j1+jho,:)
+          ! Indexing always starts at 2, i.e. x(2,2,:) always gives the first value in the processor,
+          ! regardless of the number of ghost cells. Hence, you just need to sample iho, jho values to
+          ! the left and right of this common indexing: xo = xi(2-iho:i1+iho, 2-jho:j1+jho, k1)
+          u0o = u0(2-iho:i1+iho, 2-jho:j1+jho,:)
+          v0o = v0(2-iho:i1+iho, 2-jho:j1+jho,:)
+          w0o = w0(2-iho:i1+iho, 2-jho:j1+jho,:)
+          thl0o = thl0(2-iho:i1+iho, 2-jho:j1+jho,:)
+          qt0o = qt0(2-iho:i1+iho, 2-jho:j1+jho,:)
+          ql0o = ql0(2-iho:i1+iho, 2-jho:j1+jho,:)
+          ql0ho = ql0h(2-iho:i1+iho, 2-jho:j1+jho,:)
+          e120o = e120(2-iho:i1+iho, 2-jho:j1+jho,:)
+          dthvdzo = dthvdz(2-iho:i1+iho, 2-jho:j1+jho,:)
+          ekmo = ekm(2-iho:i1+iho, 2-jho:j1+jho,:)
+          ekho = ekh(2-iho:i1+iho, 2-jho:j1+jho,:)
+          tmp0o = tmp0(2-iho:i1+iho, 2-jho:j1+jho,:)
+          eslo = esl(2-iho:i1+iho, 2-jho:j1+jho,:)
+          qvslo = qvsl(2-iho:i1+iho, 2-jho:j1+jho,:)
+          qvsio = qvsi(2-iho:i1+iho, 2-jho:j1+jho,:)
+          thlprado = thlprad(2-iho:i1+iho, 2-jho:j1+jho,:)
+          swdo = swd(2-iho:i1+iho, 2-jho:j1+jho,:)
+          swuo = swu(2-iho:i1+iho, 2-jho:j1+jho,:)
+          lwdo = lwd(2-iho:i1+iho, 2-jho:j1+jho,:)
+          lwuo = lwu(2-iho:i1+iho, 2-jho:j1+jho,:)
+          swdcao = swdca(2-iho:i1+iho, 2-jho:j1+jho,:)
+          swucao = swuca(2-iho:i1+iho, 2-jho:j1+jho,:)
+          lwdcao = lwdca(2-iho:i1+iho, 2-jho:j1+jho,:)
+          lwucao = lwuca(2-iho:i1+iho, 2-jho:j1+jho,:)
+          swdiro = swdir(2-iho:i1+iho, 2-jho:j1+jho,:)
+          swdifo = swdif(2-iho:i1+iho, 2-jho:j1+jho,:)
+          lwco = lwc(2-iho:i1+iho, 2-jho:j1+jho,:)
 
-      else if (iho == ih) then
-      	u0o = u0
-        v0o = v0
-        w0o = w0
-        thl0o = thl0
-        qt0o = qt0
-        ql0o = ql0
-        ql0ho = ql0h
-        e120o = e120
-        dthvdzo = dthvdz
-        ekmo = ekm
-        ekho = ekh
-        tmp0o = tmp0
-        eslo = esl
-        qvslo = qvsl
-        qvsio = qvsi
-        thlprado = thlprad
-        swdo = swd
-        swuo = swu
-        lwdo = lwd
-        lwuo = lwu
-        swdcao = swdca
-        swucao = swuca
-        lwdcao = lwdca
-        lwucao = lwuca
-        swdiro = swdir
-        swdifo = swdif
-        lwco = lwc
+          ! TODO ADD A CLAUSE FOR JUST RETURNING THE INPUT IF BOTH LCOARSE AND LADV ARE FALSE
+!         else if (iho == ih) then
+!           u0o = u0
+!           v0o = v0
+!           w0o = w0
+!           thl0o = thl0
+!           qt0o = qt0
+!           ql0o = ql0
+!           ql0ho = ql0h
+!           e120o = e120
+!           dthvdzo = dthvdz
+!           ekmo = ekm
+!           ekho = ekh
+!           tmp0o = tmp0
+!           eslo = esl
+!           qvslo = qvsl
+!           qvsio = qvsi
+!           thlprado = thlprad
+!           swdo = swd
+!           swuo = swu
+!           lwdo = lwd
+!           lwuo = lwu
+!           swdcao = swdca
+!           swucao = swuca
+!           lwdcao = lwdca
+!           lwucao = lwuca
+!           swdiro = swdir
+!           swdifo = swdif
+!           lwco = lwc
 
-      else
-      	! Your output fields are larger than your input fields -> Need to sample adjacent processors
+        else
+      	  ! Your output fields are larger than your input fields -> Need to sample adjacent processors
 
-      	! First insert the central processor
-      	do i=2-ih, i1+ih
-      	  do j=2-jh, j1+jh
-      	  	do k=1, k1
-      	      u0o(i,j,k) = u0(i,j,k)
-      	      v0o(i,j,k) = v0(i,j,k)
-      	      w0o(i,j,k) = w0(i,j,k)
-      	      thl0o(i,j,k) = thl0(i,j,k)
-      	      qt0o(i,j,k) = qt0(i,j,k)
-      	      ql0o(i,j,k) = ql0(i,j,k)
-      	      ql0ho(i,j,k) = ql0h(i,j,k)
-      	      e120o(i,j,k) = e120(i,j,k)
-      	      dthvdzo(i,j,k) = dthvdz(i,j,k)
-      	      ekmo(i,j,k) = ekm(i,j,k)
-      	      ekho(i,j,k) = ekh(i,j,k)
-      	      tmp0o(i,j,k) = tmp0(i,j,k)
-      	      eslo(i,j,k) = esl(i,j,k)
-      	      qvslo(i,j,k) = qvsl(i,j,k)
-      	      qvsio(i,j,k) = qvsi(i,j,k)
-      	      thlprado(i,j,k) = thlprad(i,j,k)
-      	      swdo(i,j,k) = swd(i,j,k)
-      	      swuo(i,j,k) = swu(i,j,k)
-      	      lwdo(i,j,k) = lwd(i,j,k)
-      	      lwuo(i,j,k) = lwu(i,j,k)
-      	      swdcao(i,j,k) = swdca(i,j,k)
-      	      swucao(i,j,k) = swuca(i,j,k)
-      	      lwdcao(i,j,k) = lwdca(i,j,k)
-      	      lwucao(i,j,k) = lwuca(i,j,k)
-      	      swdiro(i,j,k) = swdir(i,j,k)
-      	      swdifo(i,j,k) = swdif(i,j,k)
-      	      lwco(i,j,k) = lwc(i,j,k)
-      	    end do
-          end do
-        end do
-
-        ! Insert ghost cells. Account for:
-      	! - counter i runs from 2-iho, not 0
-      	! - need first/last/last/first points in e/w/n/s-proc, minus ghost cells from the central proc
-
-        ! Insert missing ghost cells on the east boundary
-        do i=i1+ih+1, i1+iho
-!           print *, 'EAST PROC: output i: ', i, 'input i: ', 1+i-i1
-          do j=2, j1
-            do k=1, k1
-        	  u0o(i,j,k) = u0e(1+i-i1,j,k)
-        	  v0o(i,j,k) = v0e(1+i-i1,j,k)
-        	  w0o(i,j,k) = w0e(1+i-i1,j,k)
-        	  thl0o(i,j,k) = thl0e(1+i-i1,j,k)
-        	  qt0o(i,j,k) = qt0e(1+i-i1,j,k)
-        	  ql0o(i,j,k) = ql0e(1+i-i1,j,k)
-        	  ql0ho(i,j,k) = ql0he(1+i-i1,j,k)
-        	  e120o(i,j,k) = e120e(1+i-i1,j,k)
-        	  dthvdzo(i,j,k) = dthvdze(1+i-i1,j,k)
-        	  ekmo(i,j,k) = ekme(1+i-i1,j,k)
-        	  ekho(i,j,k) = ekhe(1+i-i1,j,k)
-        	  tmp0o(i,j,k) = tmp0e(1+i-i1,j,k)
-        	  eslo(i,j,k) = esle(1+i-i1,j,k)
-        	  qvslo(i,j,k) = qvsle(1+i-i1,j,k)
-        	  qvsio(i,j,k) = qvsie(1+i-i1,j,k)
-        	  thlprado(i,j,k) = thlprade(1+i-i1,j,k)
-        	  swdo(i,j,k) = swde(1+i-i1,j,k)
-        	  swuo(i,j,k) = swue(1+i-i1,j,k)
-        	  lwdo(i,j,k) = lwde(1+i-i1,j,k)
-        	  lwuo(i,j,k) = lwue(1+i-i1,j,k)
-        	  swdcao(i,j,k) = swdcae(1+i-i1,j,k)
-        	  swucao(i,j,k) = swucae(1+i-i1,j,k)
-        	  lwdcao(i,j,k) = lwdcae(1+i-i1,j,k)
-        	  lwucao(i,j,k) = lwucae(1+i-i1,j,k)
-        	  swdiro(i,j,k) = swdire(1+i-i1,j,k)
-        	  swdifo(i,j,k) = swdife(1+i-i1,j,k)
-        	  lwco(i,j,k) = lwce(1+i-i1,j,k)
-    		end do
-		  end do
-        end do
-
-      	! Insert missing ghost cells on the west boundary
-      	do i=2-iho, 1-ih
-!           print *, 'WEST PROC: output i: ', i, 'input i: ', i1-(2-ih)+i
-      	  do j=2, j1
-      	  	do k=1, k1
-              u0o(i,j,k) = u0w(i1-(2-ih)+i, j, k)
-              v0o(i,j,k) = v0w(i1-(2-ih)+i, j, k)
-              w0o(i,j,k) = w0w(i1-(2-ih)+i, j, k)
-              thl0o(i,j,k) = thl0w(i1-(2-ih)+i, j, k)
-              qt0o(i,j,k) = qt0w(i1-(2-ih)+i, j, k)
-              ql0o(i,j,k) = ql0w(i1-(2-ih)+i, j, k)
-              ql0ho(i,j,k) = ql0hw(i1-(2-ih)+i, j, k)
-              e120o(i,j,k) = e120w(i1-(2-ih)+i, j, k)
-              dthvdzo(i,j,k) = dthvdzw(i1-(2-ih)+i, j, k)
-              ekmo(i,j,k) = ekmw(i1-(2-ih)+i, j, k)
-              ekho(i,j,k) = ekhw(i1-(2-ih)+i, j, k)
-              tmp0o(i,j,k) = tmp0w(i1-(2-ih)+i, j, k)
-              eslo(i,j,k) = eslw(i1-(2-ih)+i, j, k)
-              qvslo(i,j,k) = qvsle(i1-(2-ih)+i, j, k)
-              qvsio(i,j,k) = qvsiw(i1-(2-ih)+i, j, k)
-              thlprado(i,j,k) = thlpradw(i1-(2-ih)+i, j, k)
-              swdo(i,j,k) = swdw(i1-(2-ih)+i, j, k)
-              swuo(i,j,k) = swuw(i1-(2-ih)+i, j, k)
-              lwdo(i,j,k) = lwdw(i1-(2-ih)+i, j, k)
-              lwuo(i,j,k) = lwuw(i1-(2-ih)+i, j, k)
-              swdcao(i,j,k) = swdcaw(i1-(2-ih)+i, j, k)
-              swucao(i,j,k) = swucaw(i1-(2-ih)+i, j, k)
-              lwdcao(i,j,k) = lwdcaw(i1-(2-ih)+i, j, k)
-              lwucao(i,j,k) = lwucaw(i1-(2-ih)+i, j, k)
-              swdiro(i,j,k) = swdirw(i1-(2-ih)+i, j, k)
-              swdifo(i,j,k) = swdifw(i1-(2-ih)+i, j, k)
-              lwco(i,j,k) = lwcw(i1-(2-ih)+i, j, k)
+      	  ! First insert the central processor
+      	  do i=2-ih, i1+ih
+      	    do j=2-jh, j1+jh
+      	      do k=1, k1
+      	        u0o(i,j,k) = u0(i,j,k)
+      	        v0o(i,j,k) = v0(i,j,k)
+      	        w0o(i,j,k) = w0(i,j,k)
+      	        thl0o(i,j,k) = thl0(i,j,k)
+      	        qt0o(i,j,k) = qt0(i,j,k)
+      	        ql0o(i,j,k) = ql0(i,j,k)
+      	        ql0ho(i,j,k) = ql0h(i,j,k)
+      	        e120o(i,j,k) = e120(i,j,k)
+      	        dthvdzo(i,j,k) = dthvdz(i,j,k)
+      	        ekmo(i,j,k) = ekm(i,j,k)
+      	        ekho(i,j,k) = ekh(i,j,k)
+      	        tmp0o(i,j,k) = tmp0(i,j,k)
+      	        eslo(i,j,k) = esl(i,j,k)
+      	        qvslo(i,j,k) = qvsl(i,j,k)
+      	        qvsio(i,j,k) = qvsi(i,j,k)
+      	        thlprado(i,j,k) = thlprad(i,j,k)
+      	        swdo(i,j,k) = swd(i,j,k)
+      	        swuo(i,j,k) = swu(i,j,k)
+      	        lwdo(i,j,k) = lwd(i,j,k)
+      	        lwuo(i,j,k) = lwu(i,j,k)
+      	        swdcao(i,j,k) = swdca(i,j,k)
+      	        swucao(i,j,k) = swuca(i,j,k)
+      	        lwdcao(i,j,k) = lwdca(i,j,k)
+      	        lwucao(i,j,k) = lwuca(i,j,k)
+      	        swdiro(i,j,k) = swdir(i,j,k)
+      	        swdifo(i,j,k) = swdif(i,j,k)
+      	        lwco(i,j,k) = lwc(i,j,k)
+      	      end do
             end do
           end do
-        end do
 
-        ! Insert missing ghost cells on the north boundary
-        do j=j1+jh+1, j1+jho
-!           print *, 'NORTH PROC: output j: ', j, 'input j: ', 1+j-j1
-          do i=2, i1
-            do k=1, k1
-        	  u0o(i,j,k) = u0n(i,1+j-j1,k)
-        	  v0o(i,j,k) = v0n(i,1+j-j1,k)
-        	  w0o(i,j,k) = w0n(i,1+j-j1,k)
-        	  thl0o(i,j,k) = thl0n(i,1+j-j1,k)
-        	  qt0o(i,j,k) = qt0n(i,1+j-j1,k)
-        	  ql0o(i,j,k) = ql0n(i,1+j-j1,k)
-        	  ql0ho(i,j,k) = ql0hn(i,1+j-j1,k)
-        	  e120o(i,j,k) = e120n(i,1+j-j1,k)
-        	  dthvdzo(i,j,k) = dthvdzn(i,1+j-j1,k)
-        	  ekmo(i,j,k) = ekmn(i,1+j-j1,k)
-        	  ekho(i,j,k) = ekhn(i,1+j-j1,k)
-        	  tmp0o(i,j,k) = tmp0n(i,1+j-j1,k)
-        	  eslo(i,j,k) = esln(i,1+j-j1,k)
-        	  qvslo(i,j,k) = qvsln(i,1+j-j1,k)
-        	  qvsio(i,j,k) = qvsin(i,1+j-j1,k)
-        	  thlprado(i,j,k) = thlpradn(i,1+j-j1,k)
-        	  swdo(i,j,k) = swdn(i,1+j-j1,k)
-        	  swuo(i,j,k) = swun(i,1+j-j1,k)
-        	  lwdo(i,j,k) = lwdn(i,1+j-j1,k)
-        	  lwuo(i,j,k) = lwun(i,1+j-j1,k)
-        	  swdcao(i,j,k) = swdcan(i,1+j-j1,k)
-        	  swucao(i,j,k) = swucan(i,1+j-j1,k)
-        	  lwdcao(i,j,k) = lwdcan(i,1+j-j1,k)
-        	  lwucao(i,j,k) = lwucan(i,1+j-j1,k)
-        	  swdiro(i,j,k) = swdirn(i,1+j-j1,k)
-        	  swdifo(i,j,k) = swdifn(i,1+j-j1,k)
-        	  lwco(i,j,k) = lwcn(i,1+j-j1,k)
-    		end do
-		  end do
-        end do
+          ! Insert ghost cells. Account for:
+          ! - counter i runs from 2-iho, not 0
+          ! - need first/last/last/first points in e/w/n/s-proc, minus ghost cells from the central proc
 
-        ! Insert missing ghost cells on the south boundary
-      	do j=2-jho, 1-jh
-!           print *, 'SOUTH PROC: output j: ', j, 'input i: ', j1-(2-jh)+j
-          do i=2, i1
-          	do k=1, k1
-              u0o(i,j,k) = u0s(i, j1-(2-jh)+j, k)
-              v0o(i,j,k) = v0s(i, j1-(2-jh)+j, k)
-              w0o(i,j,k) = w0s(i, j1-(2-jh)+j, k)
-              thl0o(i,j,k) = thl0s(i, j1-(2-jh)+j, k)
-              qt0o(i,j,k) = qt0s(i, j1-(2-jh)+j, k)
-              ql0o(i,j,k) = ql0s(i, j1-(2-jh)+j, k)
-              ql0ho(i,j,k) = ql0hs(i, j1-(2-jh)+j, k)
-              e120o(i,j,k) = e120s(i, j1-(2-jh)+j, k)
-              dthvdzo(i,j,k) = dthvdzs(i, j1-(2-jh)+j, k)
-              ekmo(i,j,k) = ekms(i, j1-(2-jh)+j, k)
-              ekho(i,j,k) = ekhs(i, j1-(2-jh)+j, k)
-              tmp0o(i,j,k) = tmp0s(i, j1-(2-jh)+j, k)
-              eslo(i,j,k) = esls(i, j1-(2-jh)+j, k)
-              qvslo(i,j,k) = qvsls(i, j1-(2-jh)+j, k)
-              qvsio(i,j,k) = qvsis(i, j1-(2-jh)+j, k)
-              thlprado(i,j,k) = thlprads(i, j1-(2-jh)+j, k)
-              swdo(i,j,k) = swds(i, j1-(2-jh)+j, k)
-              swuo(i,j,k) = swus(i, j1-(2-jh)+j, k)
-              lwdo(i,j,k) = lwds(i, j1-(2-jh)+j, k)
-              lwuo(i,j,k) = lwus(i, j1-(2-jh)+j, k)
-              swdcao(i,j,k) = swdcas(i, j1-(2-jh)+j, k)
-              swucao(i,j,k) = swucas(i, j1-(2-jh)+j, k)
-              lwdcao(i,j,k) = lwdcas(i, j1-(2-jh)+j, k)
-              lwucao(i,j,k) = lwucas(i, j1-(2-jh)+j, k)
-              swdiro(i,j,k) = swdirs(i, j1-(2-jh)+j, k)
-              swdifo(i,j,k) = swdifs(i, j1-(2-jh)+j, k)
-              lwco(i,j,k) = lwcs(i, j1-(2-jh)+j, k)
+          ! Insert missing ghost cells on the east boundary
+          do i=i1+ih+1, i1+iho
+!             print *, 'EAST PROC: output i: ', i, 'input i: ', 1+i-i1
+            do j=2, j1
+              do k=1, k1
+                u0o(i,j,k) = u0e(1+i-i1,j,k)
+        	    v0o(i,j,k) = v0e(1+i-i1,j,k)
+        	    w0o(i,j,k) = w0e(1+i-i1,j,k)
+        	    thl0o(i,j,k) = thl0e(1+i-i1,j,k)
+        	    qt0o(i,j,k) = qt0e(1+i-i1,j,k)
+        	    ql0o(i,j,k) = ql0e(1+i-i1,j,k)
+        	    ql0ho(i,j,k) = ql0he(1+i-i1,j,k)
+        	    e120o(i,j,k) = e120e(1+i-i1,j,k)
+        	    dthvdzo(i,j,k) = dthvdze(1+i-i1,j,k)
+        	    ekmo(i,j,k) = ekme(1+i-i1,j,k)
+        	    ekho(i,j,k) = ekhe(1+i-i1,j,k)
+        	    tmp0o(i,j,k) = tmp0e(1+i-i1,j,k)
+        	    eslo(i,j,k) = esle(1+i-i1,j,k)
+        	    qvslo(i,j,k) = qvsle(1+i-i1,j,k)
+        	    qvsio(i,j,k) = qvsie(1+i-i1,j,k)
+        	    thlprado(i,j,k) = thlprade(1+i-i1,j,k)
+        	    swdo(i,j,k) = swde(1+i-i1,j,k)
+        	    swuo(i,j,k) = swue(1+i-i1,j,k)
+        	    lwdo(i,j,k) = lwde(1+i-i1,j,k)
+        	    lwuo(i,j,k) = lwue(1+i-i1,j,k)
+        	    swdcao(i,j,k) = swdcae(1+i-i1,j,k)
+        	    swucao(i,j,k) = swucae(1+i-i1,j,k)
+        	    lwdcao(i,j,k) = lwdcae(1+i-i1,j,k)
+        	    lwucao(i,j,k) = lwucae(1+i-i1,j,k)
+        	    swdiro(i,j,k) = swdire(1+i-i1,j,k)
+        	    swdifo(i,j,k) = swdife(1+i-i1,j,k)
+        	    lwco(i,j,k) = lwce(1+i-i1,j,k)
+              end do
+		    end do
+          end do
+
+      	  ! Insert missing ghost cells on the west boundary
+      	  do i=2-iho, 1-ih
+!             print *, 'WEST PROC: output i: ', i, 'input i: ', i1-(2-ih)+i
+      	    do j=2, j1
+      	  	  do k=1, k1
+                u0o(i,j,k) = u0w(i1-(2-ih)+i, j, k)
+                v0o(i,j,k) = v0w(i1-(2-ih)+i, j, k)
+                w0o(i,j,k) = w0w(i1-(2-ih)+i, j, k)
+                thl0o(i,j,k) = thl0w(i1-(2-ih)+i, j, k)
+                qt0o(i,j,k) = qt0w(i1-(2-ih)+i, j, k)
+                ql0o(i,j,k) = ql0w(i1-(2-ih)+i, j, k)
+                ql0ho(i,j,k) = ql0hw(i1-(2-ih)+i, j, k)
+                e120o(i,j,k) = e120w(i1-(2-ih)+i, j, k)
+                dthvdzo(i,j,k) = dthvdzw(i1-(2-ih)+i, j, k)
+                ekmo(i,j,k) = ekmw(i1-(2-ih)+i, j, k)
+                ekho(i,j,k) = ekhw(i1-(2-ih)+i, j, k)
+                tmp0o(i,j,k) = tmp0w(i1-(2-ih)+i, j, k)
+                eslo(i,j,k) = eslw(i1-(2-ih)+i, j, k)
+                qvslo(i,j,k) = qvsle(i1-(2-ih)+i, j, k)
+                qvsio(i,j,k) = qvsiw(i1-(2-ih)+i, j, k)
+                thlprado(i,j,k) = thlpradw(i1-(2-ih)+i, j, k)
+                swdo(i,j,k) = swdw(i1-(2-ih)+i, j, k)
+                swuo(i,j,k) = swuw(i1-(2-ih)+i, j, k)
+                lwdo(i,j,k) = lwdw(i1-(2-ih)+i, j, k)
+                lwuo(i,j,k) = lwuw(i1-(2-ih)+i, j, k)
+                swdcao(i,j,k) = swdcaw(i1-(2-ih)+i, j, k)
+                swucao(i,j,k) = swucaw(i1-(2-ih)+i, j, k)
+                lwdcao(i,j,k) = lwdcaw(i1-(2-ih)+i, j, k)
+                lwucao(i,j,k) = lwucaw(i1-(2-ih)+i, j, k)
+                swdiro(i,j,k) = swdirw(i1-(2-ih)+i, j, k)
+                swdifo(i,j,k) = swdifw(i1-(2-ih)+i, j, k)
+                lwco(i,j,k) = lwcw(i1-(2-ih)+i, j, k)
+              end do
             end do
           end do
-        end do
 
-	  end if ! iho > ih
+          ! Insert missing ghost cells on the north boundary
+          do j=j1+jh+1, j1+jho
+!             print *, 'NORTH PROC: output j: ', j, 'input j: ', 1+j-j1
+            do i=2, i1
+              do k=1, k1
+        	    u0o(i,j,k) = u0n(i,1+j-j1,k)
+        	    v0o(i,j,k) = v0n(i,1+j-j1,k)
+        	    w0o(i,j,k) = w0n(i,1+j-j1,k)
+        	    thl0o(i,j,k) = thl0n(i,1+j-j1,k)
+        	    qt0o(i,j,k) = qt0n(i,1+j-j1,k)
+        	    ql0o(i,j,k) = ql0n(i,1+j-j1,k)
+        	    ql0ho(i,j,k) = ql0hn(i,1+j-j1,k)
+        	    e120o(i,j,k) = e120n(i,1+j-j1,k)
+        	    dthvdzo(i,j,k) = dthvdzn(i,1+j-j1,k)
+        	    ekmo(i,j,k) = ekmn(i,1+j-j1,k)
+        	    ekho(i,j,k) = ekhn(i,1+j-j1,k)
+        	    tmp0o(i,j,k) = tmp0n(i,1+j-j1,k)
+        	    eslo(i,j,k) = esln(i,1+j-j1,k)
+        	    qvslo(i,j,k) = qvsln(i,1+j-j1,k)
+        	    qvsio(i,j,k) = qvsin(i,1+j-j1,k)
+        	    thlprado(i,j,k) = thlpradn(i,1+j-j1,k)
+        	    swdo(i,j,k) = swdn(i,1+j-j1,k)
+        	    swuo(i,j,k) = swun(i,1+j-j1,k)
+        	    lwdo(i,j,k) = lwdn(i,1+j-j1,k)
+        	    lwuo(i,j,k) = lwun(i,1+j-j1,k)
+        	    swdcao(i,j,k) = swdcan(i,1+j-j1,k)
+        	    swucao(i,j,k) = swucan(i,1+j-j1,k)
+        	    lwdcao(i,j,k) = lwdcan(i,1+j-j1,k)
+        	    lwucao(i,j,k) = lwucan(i,1+j-j1,k)
+        	    swdiro(i,j,k) = swdirn(i,1+j-j1,k)
+        	    swdifo(i,j,k) = swdifn(i,1+j-j1,k)
+        	    lwco(i,j,k) = lwcn(i,1+j-j1,k)
+    		  end do
+		    end do
+          end do
 
-	  ! And write
+          ! Insert missing ghost cells on the south boundary
+      	  do j=2-jho, 1-jh
+!             print *, 'SOUTH PROC: output j: ', j, 'input i: ', j1-(2-jh)+j
+            do i=2, i1
+              do k=1, k1
+                u0o(i,j,k) = u0s(i, j1-(2-jh)+j, k)
+                v0o(i,j,k) = v0s(i, j1-(2-jh)+j, k)
+                w0o(i,j,k) = w0s(i, j1-(2-jh)+j, k)
+                thl0o(i,j,k) = thl0s(i, j1-(2-jh)+j, k)
+                qt0o(i,j,k) = qt0s(i, j1-(2-jh)+j, k)
+                ql0o(i,j,k) = ql0s(i, j1-(2-jh)+j, k)
+                ql0ho(i,j,k) = ql0hs(i, j1-(2-jh)+j, k)
+                e120o(i,j,k) = e120s(i, j1-(2-jh)+j, k)
+                dthvdzo(i,j,k) = dthvdzs(i, j1-(2-jh)+j, k)
+                ekmo(i,j,k) = ekms(i, j1-(2-jh)+j, k)
+                ekho(i,j,k) = ekhs(i, j1-(2-jh)+j, k)
+                tmp0o(i,j,k) = tmp0s(i, j1-(2-jh)+j, k)
+                eslo(i,j,k) = esls(i, j1-(2-jh)+j, k)
+                qvslo(i,j,k) = qvsls(i, j1-(2-jh)+j, k)
+                qvsio(i,j,k) = qvsis(i, j1-(2-jh)+j, k)
+                thlprado(i,j,k) = thlprads(i, j1-(2-jh)+j, k)
+                swdo(i,j,k) = swds(i, j1-(2-jh)+j, k)
+                swuo(i,j,k) = swus(i, j1-(2-jh)+j, k)
+                lwdo(i,j,k) = lwds(i, j1-(2-jh)+j, k)
+                lwuo(i,j,k) = lwus(i, j1-(2-jh)+j, k)
+                swdcao(i,j,k) = swdcas(i, j1-(2-jh)+j, k)
+                swucao(i,j,k) = swucas(i, j1-(2-jh)+j, k)
+                lwdcao(i,j,k) = lwdcas(i, j1-(2-jh)+j, k)
+                lwucao(i,j,k) = lwucas(i, j1-(2-jh)+j, k)
+                swdiro(i,j,k) = swdirs(i, j1-(2-jh)+j, k)
+                swdifo(i,j,k) = swdifs(i, j1-(2-jh)+j, k)
+                lwco(i,j,k) = lwcs(i, j1-(2-jh)+j, k)
+              end do
+            end do
+          end do
 
+	    end if ! iho > ih
+
+	  elseif (lcoarse) then
+	  	print *, 'lcoarse nnot yet implemented.'
+
+	  end if ! ladv / lcoarse
+	  
+
+	  !!
+	  !! WRITE
+	  !!
 	  name(13:20)= cmyid
 	  write(6,*) 'writing ',name
 	  open(ifoutput,file=trim(outpath)//'/'//name,form='unformatted',status='replace')
