@@ -6,6 +6,7 @@ program reproject
   ! - Will not work if there are hetero fields
   ! - Will not work if isurf==1
   ! - Assumes periodic BCs
+  ! - Cannot yet do coarse-graining in vertical direction
 
   ! INPUTS SET BY USER
   character(256) :: inpath = '/Users/martinjanssens/Documents/Wageningen/Patterns-in-satellite-images/code/dalesruns/bomex'
@@ -1192,36 +1193,6 @@ program reproject
           swdifo = swdif(2-iho:i1+iho, 2-jho:j1+jho,:)
           lwco = lwc(2-iho:i1+iho, 2-jho:j1+jho,:)
 
-          ! TODO ADD A CLAUSE FOR JUST RETURNING THE INPUT IF BOTH LCOARSE AND LADV ARE FALSE
-!         else if (iho == ih) then
-!           u0o = u0
-!           v0o = v0
-!           w0o = w0
-!           thl0o = thl0
-!           qt0o = qt0
-!           ql0o = ql0
-!           ql0ho = ql0h
-!           e120o = e120
-!           dthvdzo = dthvdz
-!           ekmo = ekm
-!           ekho = ekh
-!           tmp0o = tmp0
-!           eslo = esl
-!           qvslo = qvsl
-!           qvsio = qvsi
-!           thlprado = thlprad
-!           swdo = swd
-!           swuo = swu
-!           lwdo = lwd
-!           lwuo = lwu
-!           swdcao = swdca
-!           swucao = swuca
-!           lwdcao = lwdca
-!           lwucao = lwuca
-!           swdiro = swdir
-!           swdifo = swdif
-!           lwco = lwc
-
         else
       	  ! Your output fields are larger than your input fields -> Need to sample adjacent processors
 
@@ -1747,9 +1718,54 @@ program reproject
 	  	  ii = 0
 	  	end do
 
+      else
+      	print *, 'Neither coarse-graining nor switching advection scheme, just returning the original fields'
+        u0o = u0
+        v0o = v0
+        w0o = w0
+        thl0o = thl0
+        qt0o = qt0
+        ql0o = ql0
+        ql0ho = ql0h
+        e120o = e120
+        dthvdzo = dthvdz
+        ekmo = ekm
+        ekho = ekh
+        tmp0o = tmp0
+        eslo = esl
+        qvslo = qvsl
+        qvsio = qvsi
+        thlprado = thlprad
+        swdo = swd
+        swuo = swu
+        lwdo = lwd
+        lwuo = lwu
+        swdcao = swdca
+        swucao = swuca
+        lwdcao = lwdca
+        lwucao = lwuca
+        swdiro = swdir
+        swdifo = swdif
+        lwco = lwc
+        ustaro = ustar
+        thlfluxo = thlflux
+        qtfluxo = qtflux
+        dthldzo = dthldz
+        dqtdzo = dqtdz
+        oblo = obl
+        tskino = tskin
+        qskino = qskin
+        SW_up_TOAo = SW_up_TOA
+        SW_dn_TOAo = SW_dn_TOA
+        LW_up_TOAo = LW_up_TOA
+        LW_dn_TOAo = LW_dn_TOA
+        SW_up_ca_TOAo = SW_up_ca_TOA
+        SW_dn_ca_TOAo = SW_dn_ca_TOA
+        LW_up_ca_TOAo = LW_up_ca_TOA
+        LW_dn_ca_TOAo = LW_dn_ca_TOA
+
 	  end if ! ladv / lcoarse
 	  
-
 	  !!
 	  !! WRITE
 	  !!
