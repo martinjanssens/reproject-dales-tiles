@@ -1140,7 +1140,7 @@ program reproject
       !! ADVECTION SCHEME SWITCH
       !!
       if (ladv) then
-        ! fields that are unaffected by ghost cells
+        ! fields that always have 1 ghost cell, and so are unaffected by changes in ih/jh related to advection scheme
         ustaro = ustar
         thlfluxo = thlflux
         qtfluxo = qtflux
@@ -1415,7 +1415,7 @@ program reproject
 	  !!
 	  elseif (lcoarse) then
 	  	
-	    ! Central processor
+	  ! Central processor
 ! 	  	u0 = 1.
 	  	ii = 2-ncoarse
 	  	ij = 2-ncoarse
@@ -1427,8 +1427,53 @@ program reproject
 ! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
 ! 	  	  	  print *, sum(u0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
 ! 	  	  	end if
+            ! 2D fields
+            ustaro(i,j) = sum(ustar(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            thlfluxo(i,j) = sum(thlflux(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            qtfluxo(i,j) = sum(qtflux(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            dthldzo(i,j) = sum(dthldz(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            dqtdzo(i,j) = sum(dqtdz(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            oblo(i,j) = sum(obl(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            tskino(i,j) = sum(tskin(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            qskino(i,j) = sum(qskin(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            SW_up_TOAo(i,j) = sum(SW_up_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            SW_dn_TOAo(i,j) = sum(SW_dn_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            LW_up_TOAo(i,j) = sum(LW_up_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            LW_dn_TOAo(i,j) = sum(LW_dn_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            SW_up_ca_TOAo(i,j) = sum(SW_up_ca_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            SW_dn_ca_TOAo(i,j) = sum(SW_dn_ca_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            LW_up_ca_TOAo(i,j) = sum(LW_up_ca_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            LW_dn_ca_TOAo(i,j) = sum(LW_dn_ca_TOA(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+
+            ! 3D fields
 	  	  	do k=1,k1
 	  	  	  u0o(i,j,k) = sum(u0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  v0o(i,j,k) = sum(v0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  w0o(i,j,k) = sum(w0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thl0o(i,j,k) = sum(thl0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qt0o(i,j,k) = sum(qt0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0o(i,j,k) = sum(ql0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0ho(i,j,k) = sum(ql0h(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  e120o(i,j,k) = sum(e120(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  dthvdzo(i,j,k) = sum(dthvdz(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekmo(i,j,k) = sum(ekm(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekho(i,j,k) = sum(ekh(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  tmp0o(i,j,k) = sum(tmp0(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  eslo(i,j,k) = sum(esl(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvslo(i,j,k) = sum(qvsl(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvsio(i,j,k) = sum(qvsi(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thlprado(i,j,k) = sum(thlprad(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdo(i,j,k) = sum(swd(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swuo(i,j,k) = sum(swu(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdo(i,j,k) = sum(lwd(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwuo(i,j,k) = sum(lwu(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdcao(i,j,k) = sum(swdca(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swucao(i,j,k) = sum(swuca(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdcao(i,j,k) = sum(lwdca(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwucao(i,j,k) = sum(lwuca(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdiro(i,j,k) = sum(swdir(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdifo(i,j,k) = sum(swdif(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwco(i,j,k) = sum(lwc(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
 	  	  	end do
 	  	  end do
 	  	  ij = 0
@@ -1446,8 +1491,56 @@ program reproject
 ! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
 ! 	  	  	  print *, sum(u0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
 ! 	  	  	end if
+			
+			! 2D fields, which always extend only 1 cell past the boundary
+            if (i == i2o) then
+              ustaro(i,j) = sum(ustare(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              thlfluxo(i,j) = sum(thlfluxe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qtfluxo(i,j) = sum(qtfluxe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dthldzo(i,j) = sum(dthldze(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dqtdzo(i,j) = sum(dqtdze(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              oblo(i,j) = sum(oble(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              tskino(i,j) = sum(tskine(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qskino(i,j) = sum(qskine(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_TOAo(i,j) = sum(SW_up_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_TOAo(i,j) = sum(SW_dn_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_TOAo(i,j) = sum(LW_up_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_TOAo(i,j) = sum(LW_dn_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_ca_TOAo(i,j) = sum(SW_up_ca_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_ca_TOAo(i,j) = sum(SW_dn_ca_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_ca_TOAo(i,j) = sum(LW_up_ca_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_ca_TOAo(i,j) = sum(LW_dn_ca_TOAe(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            end if
+
+            ! 3D fields
 	  	  	do k=1,k1
 	  	  	  u0o(i,j,k) = sum(u0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  v0o(i,j,k) = sum(v0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  w0o(i,j,k) = sum(w0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thl0o(i,j,k) = sum(thl0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qt0o(i,j,k) = sum(qt0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0o(i,j,k) = sum(ql0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0ho(i,j,k) = sum(ql0he(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  e120o(i,j,k) = sum(e120e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  dthvdzo(i,j,k) = sum(dthvdze(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekmo(i,j,k) = sum(ekme(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekho(i,j,k) = sum(ekhe(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  tmp0o(i,j,k) = sum(tmp0e(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  eslo(i,j,k) = sum(esle(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvslo(i,j,k) = sum(qvsle(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvsio(i,j,k) = sum(qvsie(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thlprado(i,j,k) = sum(thlprade(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdo(i,j,k) = sum(swde(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swuo(i,j,k) = sum(swue(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdo(i,j,k) = sum(lwde(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwuo(i,j,k) = sum(lwue(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdcao(i,j,k) = sum(swdcae(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swucao(i,j,k) = sum(swucae(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdcao(i,j,k) = sum(lwdcae(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwucao(i,j,k) = sum(lwucae(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdiro(i,j,k) = sum(swdire(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdifo(i,j,k) = sum(swdife(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwco(i,j,k) = sum(lwce(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
 	  	  	end do
 	  	  end do
 	  	  ij = 0
@@ -1465,8 +1558,56 @@ program reproject
 ! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
 ! 	  	  	  print *, sum(u0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
 ! 	  	  	end if
+            
+            ! 2D fields, which always extend only 1 cell past the boundary
+            if (i == 1) then
+              ustaro(i,j) = sum(ustarw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              thlfluxo(i,j) = sum(thlfluxw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qtfluxo(i,j) = sum(qtfluxw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dthldzo(i,j) = sum(dthldzw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dqtdzo(i,j) = sum(dqtdzw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              oblo(i,j) = sum(oblw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              tskino(i,j) = sum(tskinw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qskino(i,j) = sum(qskinw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_TOAo(i,j) = sum(SW_up_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_TOAo(i,j) = sum(SW_dn_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_TOAo(i,j) = sum(LW_up_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_TOAo(i,j) = sum(LW_dn_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_ca_TOAo(i,j) = sum(SW_up_ca_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_ca_TOAo(i,j) = sum(SW_dn_ca_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_ca_TOAo(i,j) = sum(LW_up_ca_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_ca_TOAo(i,j) = sum(LW_dn_ca_TOAw(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            end if
+
+            ! 3D fields
 	  	  	do k=1,k1
 	  	  	  u0o(i,j,k) = sum(u0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  v0o(i,j,k) = sum(v0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  w0o(i,j,k) = sum(w0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thl0o(i,j,k) = sum(thl0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qt0o(i,j,k) = sum(qt0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0o(i,j,k) = sum(ql0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0ho(i,j,k) = sum(ql0hw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  e120o(i,j,k) = sum(e120w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  dthvdzo(i,j,k) = sum(dthvdzw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekmo(i,j,k) = sum(ekmw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekho(i,j,k) = sum(ekhw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  tmp0o(i,j,k) = sum(tmp0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  eslo(i,j,k) = sum(eslw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvslo(i,j,k) = sum(qvslw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvsio(i,j,k) = sum(qvsiw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thlprado(i,j,k) = sum(thlpradw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdo(i,j,k) = sum(swdw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swuo(i,j,k) = sum(swuw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdo(i,j,k) = sum(lwdw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwuo(i,j,k) = sum(lwuw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdcao(i,j,k) = sum(swdcaw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swucao(i,j,k) = sum(swucaw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdcao(i,j,k) = sum(lwdcaw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwucao(i,j,k) = sum(lwucaw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdiro(i,j,k) = sum(swdirw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdifo(i,j,k) = sum(swdifw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwco(i,j,k) = sum(lwcw(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
 	  	  	end do
 	  	  end do
 	  	  ij = 0
@@ -1484,8 +1625,56 @@ program reproject
 ! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
 ! 	  	  	  print *, sum(u0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
 ! 	  	  	end if
+
+			! 2D fields, which always extend only 1 cell past the boundary
+            if (j == j2o) then
+              ustaro(i,j) = sum(ustarn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              thlfluxo(i,j) = sum(thlfluxn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qtfluxo(i,j) = sum(qtfluxn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dthldzo(i,j) = sum(dthldzn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dqtdzo(i,j) = sum(dqtdzn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              oblo(i,j) = sum(obln(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              tskino(i,j) = sum(tskinn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qskino(i,j) = sum(qskinn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_TOAo(i,j) = sum(SW_up_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_TOAo(i,j) = sum(SW_dn_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_TOAo(i,j) = sum(LW_up_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_TOAo(i,j) = sum(LW_dn_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_ca_TOAo(i,j) = sum(SW_up_ca_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_ca_TOAo(i,j) = sum(SW_dn_ca_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_ca_TOAo(i,j) = sum(LW_up_ca_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_ca_TOAo(i,j) = sum(LW_dn_ca_TOAn(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            end if
+            
+            ! 3D fields
 	  	  	do k=1,k1
 	  	  	  u0o(i,j,k) = sum(u0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  v0o(i,j,k) = sum(v0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  w0o(i,j,k) = sum(w0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thl0o(i,j,k) = sum(thl0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qt0o(i,j,k) = sum(qt0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0o(i,j,k) = sum(ql0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0ho(i,j,k) = sum(ql0hn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  e120o(i,j,k) = sum(e120n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  dthvdzo(i,j,k) = sum(dthvdzn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekmo(i,j,k) = sum(ekmn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekho(i,j,k) = sum(ekhn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  tmp0o(i,j,k) = sum(tmp0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  eslo(i,j,k) = sum(esln(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvslo(i,j,k) = sum(qvsln(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvsio(i,j,k) = sum(qvsin(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thlprado(i,j,k) = sum(thlpradn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdo(i,j,k) = sum(swdn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swuo(i,j,k) = sum(swun(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdo(i,j,k) = sum(lwdn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwuo(i,j,k) = sum(lwun(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdcao(i,j,k) = sum(swdcan(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swucao(i,j,k) = sum(swucan(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdcao(i,j,k) = sum(lwdcan(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwucao(i,j,k) = sum(lwucan(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdiro(i,j,k) = sum(swdirn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdifo(i,j,k) = sum(swdifn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwco(i,j,k) = sum(lwcn(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
 	  	  	end do
 	  	  end do
 	  	  ii = 0
@@ -1503,8 +1692,56 @@ program reproject
 ! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
 ! 	  	  	  print *, sum(u0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
 ! 	  	  	end if
+
+			! 2D fields, which always extend only 1 cell past the boundary
+            if (j == 1) then
+              ustaro(i,j) = sum(ustars(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              thlfluxo(i,j) = sum(thlfluxs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qtfluxo(i,j) = sum(qtfluxs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dthldzo(i,j) = sum(dthldzs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              dqtdzo(i,j) = sum(dqtdzs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              oblo(i,j) = sum(obls(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              tskino(i,j) = sum(tskins(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              qskino(i,j) = sum(qskins(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_TOAo(i,j) = sum(SW_up_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_TOAo(i,j) = sum(SW_dn_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_TOAo(i,j) = sum(LW_up_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_TOAo(i,j) = sum(LW_dn_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_up_ca_TOAo(i,j) = sum(SW_up_ca_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              SW_dn_ca_TOAo(i,j) = sum(SW_dn_ca_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_up_ca_TOAo(i,j) = sum(LW_up_ca_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+              LW_dn_ca_TOAo(i,j) = sum(LW_dn_ca_TOAs(ii:ii+ncoarse-1,ij:ij+ncoarse-1))*ncoarse2i
+            end if
+
+            ! 3D fields
 	  	  	do k=1,k1
 	  	  	  u0o(i,j,k) = sum(u0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  v0o(i,j,k) = sum(v0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  w0o(i,j,k) = sum(w0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thl0o(i,j,k) = sum(thl0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qt0o(i,j,k) = sum(qt0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0o(i,j,k) = sum(ql0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ql0ho(i,j,k) = sum(ql0hs(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  e120o(i,j,k) = sum(e120s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  dthvdzo(i,j,k) = sum(dthvdzs(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekmo(i,j,k) = sum(ekms(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  ekho(i,j,k) = sum(ekhs(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  tmp0o(i,j,k) = sum(tmp0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  eslo(i,j,k) = sum(esls(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvslo(i,j,k) = sum(qvsls(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  qvsio(i,j,k) = sum(qvsis(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  thlprado(i,j,k) = sum(thlprads(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdo(i,j,k) = sum(swds(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swuo(i,j,k) = sum(swus(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdo(i,j,k) = sum(lwds(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwuo(i,j,k) = sum(lwus(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdcao(i,j,k) = sum(swdcas(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swucao(i,j,k) = sum(swucas(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwdcao(i,j,k) = sum(lwdcas(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwucao(i,j,k) = sum(lwucas(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdiro(i,j,k) = sum(swdirs(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  swdifo(i,j,k) = sum(swdifs(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	  lwco(i,j,k) = sum(lwcs(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
 	  	  	end do
 	  	  end do
 	  	  ii = 0
