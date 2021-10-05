@@ -1454,22 +1454,60 @@ program reproject
 	  	end do
 
 	    ! West boundary
-	  	u0w = 1.
+! 	  	u0w = 1.
 	  	ii = i1-(iho+1)*ncoarse+1 ! Start iho*ncoarse+1 left of east boundary of western proc
 	  	ij = 2-ncoarse
 	  	do i=2-iho,1
 	  	  ii = ii+ncoarse
 	  	  do j=2,j1o
 	  	  	ij = ij+ncoarse
-	  	  	if (procx == 0 .and. procy == 0) then
-	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
-	  	  	  print *, sum(u0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
-	  	  	end if
+! 	  	  	if (procx == 0 .and. procy == 0) then
+! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
+! 	  	  	  print *, sum(u0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
+! 	  	  	end if
 	  	  	do k=1,k1
 	  	  	  u0o(i,j,k) = sum(u0w(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
 	  	  	end do
 	  	  end do
 	  	  ij = 0
+	  	end do
+
+	  	! North boundary
+! 	  	u0n = 1.
+	  	ij = 2-ncoarse ! Start at south boundary of northern proc
+	  	ii = 2-ncoarse
+	  	do j=j2o,j1o+jho
+	  	  ij = ij+ncoarse
+	  	  do i=2,i1o
+	  	  	ii = ii+ncoarse
+! 	  	  	if (procx == 0 .and. procy == 0) then
+! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
+! 	  	  	  print *, sum(u0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
+! 	  	  	end if
+	  	  	do k=1,k1
+	  	  	  u0o(i,j,k) = sum(u0n(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	end do
+	  	  end do
+	  	  ii = 0
+	  	end do
+
+	    ! South boundary
+! 	  	u0s = 1.
+	  	ij = j1-(jho+1)*ncoarse+1 ! Start jho*ncoarse+1 below of north boundary of southern proc
+	  	ii = 2-ncoarse
+	  	do j=2-jho,1
+	  	  ij = ij+ncoarse
+	  	  do i=2,i1o
+	  	  	ii = ii+ncoarse
+! 	  	  	if (procx == 0 .and. procy == 0) then
+! 	  	  	  print *, 'i:',i,'j:',j,'ii:',ii,'ij:',ij
+! 	  	  	  print *, sum(u0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,1))*ncoarse2i
+! 	  	  	end if
+	  	  	do k=1,k1
+	  	  	  u0o(i,j,k) = sum(u0s(ii:ii+ncoarse-1,ij:ij+ncoarse-1,k))*ncoarse2i
+	  	  	end do
+	  	  end do
+	  	  ii = 0
 	  	end do
 
 	  end if ! ladv / lcoarse
@@ -1482,62 +1520,63 @@ program reproject
 	  write(6,*) 'writing ',name
 	  open(ifoutput,file=trim(outpath)//'/'//name,form='unformatted',status='replace')
 
-	  write(ifoutput)  (((u0o    (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((v0o    (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((w0o    (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((thl0o  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((qt0o   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((ql0o   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((ql0ho  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((e120o  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((dthvdzo(i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((ekmo   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((ekho   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((tmp0o  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((eslo   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((qvslo  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((qvsio  (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  ((ustaro  (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)  ((thlfluxo(i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)  ((qtfluxo (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)  ((dthldzo (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)  ((dqtdzo  (i,j  ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)  (((u0o    (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((v0o    (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((w0o    (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((thl0o  (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((qt0o   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((ql0o   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((ql0ho  (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((e120o  (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((dthvdzo(i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((ekmo   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((ekho   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((tmp0o  (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((eslo   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((qvslo  (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((qvsio  (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  ((ustaro  (i,j  ),i=1,i2o      ),j=1,j2o      )
+	  write(ifoutput)  ((thlfluxo(i,j  ),i=1,i2o      ),j=1,j2o      )
+	  write(ifoutput)  ((qtfluxo (i,j  ),i=1,i2o      ),j=1,j2o      )
+	  write(ifoutput)  ((dthldzo (i,j  ),i=1,i2o      ),j=1,j2o      )
+	  write(ifoutput)  ((dqtdzo  (i,j  ),i=1,i2o      ),j=1,j2o      )
 	  write(ifoutput)  (  presf (    k)                            ,k=1,k1)
 	  write(ifoutput)  (  presh (    k)                            ,k=1,k1)
 	  write(ifoutput)  (  initial_presf (    k)                            ,k=1,k1)
 	  write(ifoutput)  (  initial_presh (    k)                            ,k=1,k1)
 	  write(ifoutput)  ps,thls,qts,thvs,oblav
 	  write(ifoutput)  dtheta,dqt,timee,  dt,tres
-	  write(ifoutput)   ((oblo (i,j  ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((tskino(i,j ),i=1,i2      ),j=1,j2      )
-	  write(ifoutput)   ((qskino(i,j ),i=1,i2      ),j=1,j2      )
+	  write(ifoutput)   ((oblo (i,j  ),i=1,i2o      ),j=1,j2o      )
+	  write(ifoutput)   ((tskino(i,j ),i=1,i2o      ),j=1,j2o      )
+	  write(ifoutput)   ((qskino(i,j ),i=1,i2o      ),j=1,j2o      )
 
 	!!!!! radiation quantities
 	  write(ifoutput)  tnext_radiation
-	  write(ifoutput)  (((thlprado (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((swdo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((swuo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((lwdo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((lwuo     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((swdcao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((swucao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((lwdcao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((lwucao   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((swdiro   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((swdifo   (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
-	  write(ifoutput)  (((lwco     (i,j,k),i=2-iho,i1+iho),j=2-jho,j1+jho),k=1,k1)
+	  write(ifoutput)  (((thlprado (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((swdo     (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((swuo     (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((lwdo     (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((lwuo     (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((swdcao   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((swucao   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((lwdcao   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((lwucao   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((swdiro   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((swdifo   (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
+	  write(ifoutput)  (((lwco     (i,j,k),i=2-iho,i1o+iho),j=2-jho,j1o+jho),k=1,k1)
 
-	  write(ifoutput)  ((SW_up_TOAo    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((SW_dn_TOAo    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_up_TOAo    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_dn_TOAo    (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((SW_up_ca_TOAo (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((SW_dn_ca_TOAo (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_up_ca_TOAo (i,j ),i=1,i2),j=1,j2)
-	  write(ifoutput)  ((LW_dn_ca_TOAo (i,j ),i=1,i2),j=1,j2)
+	  write(ifoutput)  ((SW_up_TOAo    (i,j ),i=1,i2o),j=1,j2o)
+	  write(ifoutput)  ((SW_dn_TOAo    (i,j ),i=1,i2o),j=1,j2o)
+	  write(ifoutput)  ((LW_up_TOAo    (i,j ),i=1,i2o),j=1,j2o)
+	  write(ifoutput)  ((LW_dn_TOAo    (i,j ),i=1,i2o),j=1,j2o)
+	  write(ifoutput)  ((SW_up_ca_TOAo (i,j ),i=1,i2o),j=1,j2o)
+	  write(ifoutput)  ((SW_dn_ca_TOAo (i,j ),i=1,i2o),j=1,j2o)
+	  write(ifoutput)  ((LW_up_ca_TOAo (i,j ),i=1,i2o),j=1,j2o)
+	  write(ifoutput)  ((LW_dn_ca_TOAo (i,j ),i=1,i2o),j=1,j2o)
 
 	  close (ifoutput)
 
+	  ! FIXME scalars currently not implemented
 	  if (nsv>0) then
 	    name(5:5)='s'
 	    open  (ifoutput,file=trim(outpath)//'/'//name,form='unformatted')
