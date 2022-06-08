@@ -9,33 +9,33 @@ program reproject
   ! - Cannot yet do coarse-graining in vertical direction
 
   ! INPUTS SET BY USER
-  character(256) :: inpath = '/scratch-shared/janssens/bomex200aswitch/a5'
-  character(256) :: outpath = '/scratch-shared/janssens/bomex200aswitch/a2_froma5_12hr'
+  character(256) :: inpath = '/scratch-shared/janssens/bomex100_e12'
+  character(256) :: outpath = '/scratch-shared/janssens/bomex100a5_from100_12hr'
   ! integer :: ierr
 
   ! SETTINGS FROM INPUT SIMULATION
   ! Could read this from namoptions.001, but then you'll have to parse all the inputs (and we don't want that)
   character(50) :: name = 'initd012h00mx000y000.001'
   integer :: nsv = 0
-  integer :: nprocx = 8
-  integer :: nprocy = 8
-  integer :: itot = 512
-  integer :: jtot = 512
+  integer :: nprocx = 16
+  integer :: nprocy = 16
+  integer :: itot = 1024
+  integer :: jtot = 1024
   integer :: kmax = 180
-  integer :: iadv_mom = 52
-  integer :: iadv_tke = 52
-  integer :: iadv_thl = 52
-  integer :: iadv_qt = 52
+  integer :: iadv_mom = 2
+  integer :: iadv_tke = 2
+  integer :: iadv_thl = 2
+  integer :: iadv_qt = 2
   integer :: iadv_sv(100) = -1
 
   ! SETTINGS FOR DESIRED OUTPUT SIMULATION
-  integer :: itoto = 512
-  integer :: jtoto = 512
+  integer :: itoto = 1024
+  integer :: jtoto = 1024
   integer :: kmaxo = 180
-  integer :: iadv_momo = 2
-  integer :: iadv_tkeo = 2
-  integer :: iadv_thlo = 2
-  integer :: iadv_qto = 2
+  integer :: iadv_momo = 52
+  integer :: iadv_tkeo = 52
+  integer :: iadv_thlo = 52
+  integer :: iadv_qto = 52
   integer :: iadv_svo(100) = -1  
 
   !!
